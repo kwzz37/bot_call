@@ -381,6 +381,22 @@ async def scan_barcode(barcode: str):
 import urllib.parse
 import json
 import os
+from rapidfuzz import fuzz
+
+ENG_TO_RUS_KEYBOARD = str.maketrans(
+    "qwertyuiop[]asdfghjkl;'zxcvbnm,.",
+    "йцукенгшщзхъфывапролджэячсмитьбю"
+)
+
+ENG_TO_RUS_SOUND = {
+    "cola": "кола", "kfc": "кфс", "mcdonalds": "макдоналдс",
+    "sprite": "спрайт", "fanta": "фанта", "pepsi": "пепси",
+    "latte": "латте", "cappuccino": "капучино", "coffee": "кофе",
+    "tea": "чай", "burger": "бургер", "pizza": "пицца",
+    "sushi": "суши", "snickers": "сникерс", "bounty": "баунти",
+    "twix": "твикс", "mars": "марс", "oreo": "орео", "lays": "лейс",
+    "pringles": "принглс"
+}
 
 @app.get("/api/search-food")
 async def search_food(q: str):
@@ -391,23 +407,48 @@ async def search_food(q: str):
     results = []
     seen = set()
     
-    # 1. Search local DB first
+    # 1. Preprocess query
+    q_kb = q_str.translate(ENG_TO_RUS_KEYBOARD)
+    words = q_str.split()
+    for i, w in enumerate(words):
+        if w in ENG_TO_RUS_SOUND:
+            words[i] = ENG_TO_RUS_SOUND[w]
+    q_syn = " ".join(words)
+    
+    queries = [q_str, q_kb, q_syn]
+    
+    # 2. Search local DB first
     local_db_path = os.path.join(os.path.dirname(__file__), "local_db.json")
     if os.path.exists(local_db_path):
         with open(local_db_path, "r", encoding="utf-8") as f:
             local_foods = json.load(f)
+            
+            scored = []
             for lf in local_foods:
-                if q_str in lf["food_name"].lower():
-                    results.append({
-                        "food_name": lf["food_name"],
-                        "calories": lf["calories"],
-                        "protein": lf["protein"],
-                        "carbs": lf["carbs"],
-                        "fat": lf["fat"],
-                        "brand": "Локальная база",
-                        "image_url": "",
-                    })
-                    seen.add(lf["food_name"].lower())
+                fname = lf["food_name"].lower()
+                best_score = 0
+                for query in queries:
+                    score = fuzz.token_set_ratio(query, fname)
+                    if query in fname:
+                        score = max(score, 90)
+                    best_score = max(best_score, score)
+                
+                if best_score >= 60:
+                    scored.append((best_score, lf))
+            
+            scored.sort(key=lambda x: x[0], reverse=True)
+            
+            for score, lf in scored[:15]:
+                results.append({
+                    "food_name": lf["food_name"],
+                    "calories": lf["calories"],
+                    "protein": lf["protein"],
+                    "carbs": lf["carbs"],
+                    "fat": lf["fat"],
+                    "brand": "Локальная база",
+                    "image_url": "",
+                })
+                seen.add(lf["food_name"].lower())
     
     # 2. Try OpenFoodFacts
     q_encoded = urllib.parse.quote(q.strip())
