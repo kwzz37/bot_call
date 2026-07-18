@@ -1,0 +1,422 @@
+"""
+main.py — FastAPI backend for Calorie Tracker Telegram Mini App
+"""
+
+import logging
+import os
+import httpx
+from contextlib import asynccontextmanager
+from typing import Annotated
+
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+from schemas import (
+    AIFoodResult,
+    AddTextRequest,
+    FoodEntry,
+    StatsResponse,
+    UserInitRequest,
+    UserUpdateRequest,
+    WaterEntry,
+    WaterAddRequest,
+    WeightEntry,
+    ManualFoodRequest,
+    WeeklyStatsResponse,
+)
+
+from ai import FoodAI
+from database import (
+    add_food_log,
+    delete_food_log,
+    get_today_logs,
+    get_user,
+    init_db,
+    upsert_user,
+    get_logs_by_date,
+    add_water,
+    delete_water,
+    get_water_by_date,
+    get_weight_history,
+    update_user_streak,
+)
+
+# ─────────────────────────── Config ───────────────────────────
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
+logger = logging.getLogger(__name__)
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAPnuJCUBA8QzxU8shSg96Rpf4qiB2exv8")
+GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+food_ai = FoodAI(api_key=GEMINI_API_KEY, model=GEMINI_MODEL)
+
+# ─────────────────────────── App lifecycle ───────────────────────────
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    logger.info("Database initialized. Model: %s", GEMINI_MODEL)
+    yield
+
+app = FastAPI(
+    title="Calorie Tracker API",
+    description="Backend for Telegram Mini App calorie tracker",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# ─────────────────────────── CORS ───────────────────────────
+# Allow all origins so the Telegram Mini App (webview / localhost) can connect.
+# Tighten in production by listing specific origins.
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ─────────────────────────── Removed schemas (now in schemas.py) ───────────────────────────
+
+
+# ─────────────────────────── Helper ───────────────────────────
+
+def _require_user(user_id: int):
+    user = get_user(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found. Call /api/init-user first.",
+        )
+    return user
+
+
+# ─────────────────────────── Endpoints ───────────────────────────
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "model": GEMINI_MODEL}
+
+
+# ── 1. Init / upsert user ──────────────────────────────────────────
+
+@app.post("/api/init-user", status_code=status.HTTP_200_OK)
+def init_user(body: UserInitRequest):
+    """
+    Create the user if they don't exist, or update their profile.
+    Called when the Telegram Mini App opens.
+    """
+    user = upsert_user(
+        body.user_id,
+        calorie_goal=body.calorie_goal,
+        weight=body.weight,
+        height=body.height,
+        age=body.age,
+        gender=body.gender,
+        first_name=body.first_name,
+        username=body.username,
+    )
+    return {
+        "user_id":      user["id"],
+        "calorie_goal": user["calorie_goal"],
+        "weight":       user["weight"],
+        "height":       user["height"],
+        "age":          user["age"],
+        "gender":       user["gender"],
+        "first_name":   user["first_name"],
+        "username":     user["username"],
+        "created_at":   user["created_at"],
+    }
+
+
+@app.patch("/api/user/{user_id}", status_code=status.HTTP_200_OK)
+def update_user(user_id: int, body: UserUpdateRequest):
+    """Update user goals / metrics."""
+    _require_user(user_id)
+    user = upsert_user(
+        user_id,
+        calorie_goal=body.calorie_goal or 2500,
+        weight=body.weight,
+        height=body.height,
+        age=body.age,
+        gender=body.gender,
+    )
+    return {"calorie_goal": user["calorie_goal"], "weight": user["weight"]}
+
+
+# ── 2. Stats ──────────────────────────────────────────────────
+
+@app.get("/api/stats", response_model=StatsResponse)
+def get_stats(user_id: int, date: str | None = None):
+    """
+    Return today's (or a specific date's) food logs and calorie total.
+    Query params: ?user_id=123&date=2026-02-22 (date is optional, defaults to today)
+    """
+    user = _require_user(user_id)
+
+    from datetime import date as date_cls
+    target = date or date_cls.today().isoformat()
+
+    rows = get_logs_by_date(user_id, target) if date else get_today_logs(user_id)
+    water_rows = get_water_by_date(user_id, target)
+    
+    # Update and get current streak
+    streak = update_user_streak(user_id)
+
+    entries = [
+        FoodEntry(
+            id=r["id"],
+            food_name=r["food_name"],
+            calories=r["calories"],
+            protein=r["protein"],
+            carbs=r["carbs"],
+            fat=r["fat"],
+            emoji=r["emoji"],
+            source=r["source"],
+            logged_at=r["logged_at"],
+        )
+        for r in rows
+    ]
+    
+    water_entries = [
+        WaterEntry(id=r["id"], amount_ml=r["amount_ml"], logged_at=r["logged_at"])
+        for r in water_rows
+    ]
+
+    return StatsResponse(
+        user_id=user_id,
+        date=target,
+        total_calories=sum(e.calories for e in entries),
+        calorie_goal=user["calorie_goal"],
+        total_protein=sum(e.protein or 0 for e in entries),
+        total_carbs=sum(e.carbs or 0 for e in entries),
+        total_fat=sum(e.fat or 0 for e in entries),
+        water_ml=sum(w.amount_ml for w in water_entries),
+        streak=streak,
+        entries=entries,
+        water_entries=water_entries,
+    )
+
+
+# ── 3. Add food by text ───────────────────────────────────────
+
+@app.post("/api/add-text", response_model=AIFoodResult, status_code=status.HTTP_201_CREATED)
+async def add_text(body: AddTextRequest):
+    """
+    Pass a text description (e.g. "банан" or "тарелка борща").
+    Gemini returns name + calories + macros, which are saved to the DB.
+    """
+    _require_user(body.user_id)
+
+    result = await food_ai.analyze_text(body.text)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Gemini could not identify food in the given text.",
+        )
+
+    log_id = add_food_log(
+        user_id=body.user_id,
+        food_name=result["food"],
+        calories=int(result["calories"]),
+        protein=result.get("protein"),
+        carbs=result.get("carbs"),
+        fat=result.get("fat"),
+        emoji=result.get("emoji"),
+        source="text_ai",
+    )
+
+    return AIFoodResult(log_id=log_id, **result)
+
+
+# ── 4. Analyze photo ─────────────────────────────────────────
+
+@app.post("/api/analyze-photo", response_model=AIFoodResult, status_code=status.HTTP_201_CREATED)
+async def analyze_photo(
+    user_id: Annotated[int, Form()],
+    file: Annotated[UploadFile, File(description="Food photo (JPEG / PNG / WEBP)")],
+):
+    """
+    Upload a food photo. Gemini vision identifies the dish and estimates calories.
+    The result is saved to the DB and returned.
+    """
+    _require_user(user_id)
+
+    # Validate MIME
+    allowed_mime = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    content_type = file.content_type or "image/jpeg"
+    if content_type not in allowed_mime:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Unsupported image type: {content_type}. Allowed: {allowed_mime}",
+        )
+
+    # Limit file size to 10 MB
+    image_bytes = await file.read()
+    if len(image_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Image too large. Max 10 MB.",
+        )
+
+    result = await food_ai.analyze_photo(image_bytes, mime_type=content_type)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No food detected in the photo.",
+        )
+
+    log_id = add_food_log(
+        user_id=user_id,
+        food_name=result["food"],
+        calories=int(result["calories"]),
+        protein=result.get("protein"),
+        carbs=result.get("carbs"),
+        fat=result.get("fat"),
+        emoji=result.get("emoji"),
+        source="photo_ai",
+    )
+
+    return AIFoodResult(log_id=log_id, **result)
+
+
+# ── 5. Delete food entry ─────────────────────────────────────
+
+@app.delete("/api/food/{log_id}", status_code=status.HTTP_200_OK)
+def delete_food(log_id: int, user_id: int):
+    """Delete a food log entry. ?user_id=123 is required for authorization."""
+    _require_user(user_id)
+    deleted = delete_food_log(log_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log entry not found.")
+    return {"deleted": True, "log_id": log_id}
+
+
+# ── 6. Water Tracker ─────────────────────────────────────────
+
+@app.post("/api/water", status_code=status.HTTP_201_CREATED)
+def log_water(body: WaterAddRequest):
+    _require_user(body.user_id)
+    log_id = add_water(body.user_id, body.amount_ml)
+    return {"log_id": log_id, "amount_ml": body.amount_ml}
+
+@app.delete("/api/water/{log_id}", status_code=status.HTTP_200_OK)
+def remove_water(log_id: int, user_id: int):
+    _require_user(user_id)
+    deleted = delete_water(log_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Water log not found")
+    return {"deleted": True}
+
+
+# ── 7. Weight History ────────────────────────────────────────
+
+@app.get("/api/weight-history", response_model=list[WeightEntry])
+def weight_history(user_id: int):
+    _require_user(user_id)
+    rows = get_weight_history(user_id)
+    return [WeightEntry(weight=r["weight"], date=r["date"]) for r in rows]
+
+
+# ── 8. Manual Food ───────────────────────────────────────────
+
+@app.post("/api/add-manual", response_model=AIFoodResult)
+def add_manual(body: ManualFoodRequest):
+    _require_user(body.user_id)
+    log_id = add_food_log(
+        user_id=body.user_id,
+        food_name=body.food_name,
+        calories=body.calories,
+        protein=body.protein,
+        carbs=body.carbs,
+        fat=body.fat,
+        emoji=body.emoji,
+        source="manual",
+    )
+    return AIFoodResult(
+        food=body.food_name,
+        calories=body.calories,
+        protein=body.protein,
+        carbs=body.carbs,
+        fat=body.fat,
+        emoji=body.emoji,
+        log_id=log_id,
+    )
+
+
+# ── 9. Barcode Scanner (OpenFoodFacts) ───────────────────────
+
+@app.get("/api/barcode/{barcode}")
+async def scan_barcode(barcode: str):
+    url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=404, detail="Barcode API error")
+        
+    data = resp.json()
+    if data.get("status") != 1:
+        raise HTTPException(status_code=404, detail="Product not found in OpenFoodFacts")
+        
+    product = data.get("product", {})
+    nutriments = product.get("nutriments", {})
+    
+    return {
+        "food_name": product.get("product_name", "Unknown Product"),
+        "calories": int(nutriments.get("energy-kcal_100g", 0) or 0),
+        "protein": float(nutriments.get("proteins_100g", 0.0) or 0.0),
+        "carbs": float(nutriments.get("carbohydrates_100g", 0.0) or 0.0),
+        "fat": float(nutriments.get("fat_100g", 0.0) or 0.0),
+        "brand": product.get("brands", ""),
+        "image_url": product.get("image_url", ""),
+    }
+
+# ── 10. Weekly Stats ─────────────────────────────────────────
+
+@app.get("/api/stats/weekly", response_model=WeeklyStatsResponse)
+def get_weekly_stats(user_id: int):
+    _require_user(user_id)
+    from datetime import date as date_cls, timedelta
+    today = date_cls.today()
+    dates = [(today - timedelta(days=i)).isoformat() for i in range(6, -1, -1)]
+    weekly_calories = []
+    
+    for d in dates:
+        rows = get_logs_by_date(user_id, d)
+        weekly_calories.append(sum(r["calories"] for r in rows))
+        
+    streak = update_user_streak(user_id)
+    return WeeklyStatsResponse(
+        user_id=user_id,
+        streak=streak,
+        weekly_calories=weekly_calories,
+        dates=dates
+    )
+
+
+# ─────────────────────────── Run locally / Serve Frontend ───────────────────────────
+
+frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
+assets_dir = os.path.join(frontend_dir, "assets")
+os.makedirs(assets_dir, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    file_path = os.path.join(frontend_dir, full_path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    index_path = os.path.join(frontend_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+        
+    raise HTTPException(status_code=404, detail="Frontend not built. Run 'npm run build' in frontend folder.")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
