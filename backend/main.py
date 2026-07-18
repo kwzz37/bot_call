@@ -375,7 +375,81 @@ async def scan_barcode(barcode: str):
         "image_url": product.get("image_url", ""),
     }
 
-# ── 10. Weekly Stats ─────────────────────────────────────────
+
+# ── 10. Search Food (OpenFoodFacts) ───────────────────────
+
+import urllib.parse
+import json
+import os
+
+@app.get("/api/search-food")
+async def search_food(q: str):
+    q_str = q.strip().lower()
+    if not q_str:
+        return []
+        
+    results = []
+    seen = set()
+    
+    # 1. Search local DB first
+    local_db_path = os.path.join(os.path.dirname(__file__), "local_db.json")
+    if os.path.exists(local_db_path):
+        with open(local_db_path, "r", encoding="utf-8") as f:
+            local_foods = json.load(f)
+            for lf in local_foods:
+                if q_str in lf["food_name"].lower():
+                    results.append({
+                        "food_name": lf["food_name"],
+                        "calories": lf["calories"],
+                        "protein": lf["protein"],
+                        "carbs": lf["carbs"],
+                        "fat": lf["fat"],
+                        "brand": "Локальная база",
+                        "image_url": "",
+                    })
+                    seen.add(lf["food_name"].lower())
+    
+    # 2. Try OpenFoodFacts
+    q_encoded = urllib.parse.quote(q.strip())
+    url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={q_encoded}&search_simple=1&action=process&json=1&page_size=20"
+    
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get(url, headers={"User-Agent": "CalorieTrackerApp/1.0"})
+            if resp.status_code == 200:
+                data = resp.json()
+                products = data.get("products", [])
+                for p in products:
+                    name = p.get("product_name")
+                    if not name:
+                        continue
+                        
+                    name_lower = name.lower().strip()
+                    if name_lower in seen:
+                        continue
+                        
+                    nutriments = p.get("nutriments", {})
+                    calories = nutriments.get("energy-kcal_100g")
+                    if calories is None:
+                        continue
+                        
+                    seen.add(name_lower)
+                    results.append({
+                        "food_name": name,
+                        "calories": int(calories or 0),
+                        "protein": float(nutriments.get("proteins_100g") or 0.0),
+                        "carbs": float(nutriments.get("carbohydrates_100g") or 0.0),
+                        "fat": float(nutriments.get("fat_100g") or 0.0),
+                        "brand": p.get("brands", ""),
+                        "image_url": p.get("image_url", ""),
+                    })
+    except Exception:
+        pass # Ignore 503 or timeout from OpenFoodFacts
+        
+    return results
+
+
+# ── 11. Weekly Stats ─────────────────────────────────────────
 
 @app.get("/api/stats/weekly", response_model=WeeklyStatsResponse)
 def get_weekly_stats(user_id: int):

@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
-import { Camera, Send, Sparkles, CheckCircle, AlertCircle, ChevronLeft, Barcode } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Camera, Send, Sparkles, CheckCircle, AlertCircle, ChevronLeft, Barcode, Search } from 'lucide-react';
 import { FoodItem } from '../components/FoodCard';
+import { GramCalculatorSheet } from '../components/GramCalculatorSheet';
 import { useTelegram } from '../hooks/useTelegram';
-import { addByText, analyzePhoto, scanBarcode } from '../api';
+import { addByText, analyzePhoto, scanBarcode, searchFood, FoodSearchResult, addManual } from '../api';
 
-type Tab = 'text' | 'photo' | 'barcode';
+type Tab = 'search' | 'text' | 'photo' | 'barcode';
 type AIState = 'idle' | 'uploading' | 'analyzing' | 'done' | 'error';
 
 interface AddFoodProps {
@@ -16,7 +17,32 @@ const MEAL_EMOJIS = ['🍗', '🥗', '🍕', '🍜', '🥩', '🥣', '🍎', '�
 
 export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
     const { tapImpact, successFeedback, errorFeedback, user } = useTelegram();
-    const [activeTab, setActiveTab] = useState<Tab>('text');
+    const [activeTab, setActiveTab] = useState<Tab>('search');
+
+    // Search tab state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<FoodSearchResult[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [selectedFood, setSelectedFood] = useState<FoodSearchResult | null>(null);
+
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (searchQuery.trim().length > 2) {
+                setIsSearching(true);
+                try {
+                    const results = await searchFood(searchQuery.trim());
+                    setSearchResults(results);
+                } catch (e) {
+                    console.error('Search error', e);
+                } finally {
+                    setIsSearching(false);
+                }
+            } else {
+                setSearchResults([]);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Text tab state
     const [foodName, setFoodName] = useState('');
@@ -114,6 +140,41 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
         }
     };
 
+    const handleAddSearchResult = async (food: FoodSearchResult, grams: number = 100) => {
+        if (!user?.id) return;
+        setSelectedFood(null);
+        tapImpact();
+        // Scale nutrition by grams
+        const f = grams / 100;
+        const scaledFood = {
+            ...food,
+            calories: Math.round(food.calories * f),
+            protein: parseFloat((food.protein * f).toFixed(1)),
+            carbs: parseFloat((food.carbs * f).toFixed(1)),
+            fat: parseFloat((food.fat * f).toFixed(1)),
+            food_name: `${food.food_name} (${grams}г)`,
+        };
+        try {
+            const res = await addManual(user.id, scaledFood);
+            const item: FoodItem = {
+                id: res.log_id.toString(),
+                name: res.food,
+                calories: res.calories,
+                protein: res.protein || undefined,
+                carbs: res.carbs || undefined,
+                fat: res.fat || undefined,
+                emoji: res.emoji || '🍽️',
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            };
+            onAdd(item);
+            successFeedback();
+            onBack();
+        } catch (e) {
+            console.error('Manual add error:', e);
+            errorFeedback();
+        }
+    };
+
     const handleAddFromAI = () => {
         if (!aiResult) return;
         tapImpact();
@@ -140,41 +201,93 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50 pb-28">
+        <div className="page-container">
             {/* Header */}
             <div className="px-5 pt-6 pb-4 flex items-center gap-3">
                 <button
-                    onClick={onBack}
-                    className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white shadow-soft text-gray-600 active:scale-90 transition-all"
+                    onClick={() => { tapImpact(); onBack(); }}
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all active:scale-90"
+                    style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
                 >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={20} style={{ color: 'var(--text-primary)' }} />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Добавить еду</h1>
-                    <p className="text-sm text-gray-400">Опишите или сфотографируйте</p>
+                    <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Добавить еду</h1>
                 </div>
             </div>
 
             {/* Tab Switcher */}
-            <div className="mx-5 mb-5">
-                <div className="bg-gray-100 rounded-2xl p-1 flex">
-                    {(['text', 'photo', 'barcode'] as Tab[]).map((tab) => (
+            <div className="mx-5 mb-5 overflow-x-auto pb-1">
+                <div className="tab-switcher" style={{ gap: '0.25rem' }}>
+                    {(['search', 'text', 'photo', 'barcode'] as Tab[]).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => { tapImpact(); setActiveTab(tab); }}
-                            className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95 ${activeTab === tab
-                                ? 'bg-white text-sky-500 shadow-soft'
-                                : 'text-gray-400'
-                                }`}
+                            className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                         >
-                            {tab === 'text' ? 'Текст' : tab === 'photo' ? 'Фото' : 'Штрихкод'}
+                            {tab === 'search' ? '🔍 Поиск' : tab === 'text' ? '✏️ Вручную' : tab === 'photo' ? '📷 Фото' : '📊 Штрихкод'}
                         </button>
                     ))}
                 </div>
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'text' ? (
+            {activeTab === 'search' ? (
+                <div className="px-5 tab-content animate-fade-in">
+                    <div className="relative mb-4">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search size={18} className="text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            className="input-field pl-10 w-full"
+                            placeholder="Найти продукт в базе (от 3 букв)..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {isSearching && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <div className="w-4 h-4 border-2 border-sky-200 border-t-sky-500 rounded-full animate-spin" />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-2 pb-8">
+                        {searchResults.length > 0 ? (
+                            searchResults.map((res, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => { tapImpact(); setSelectedFood(res); }}
+                                    className="glass-card w-full p-3 flex items-center justify-between gap-3 active:scale-[0.98] transition-all text-left"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{res.food_name}</p>
+                                        <div className="flex items-center gap-2 mt-1 text-xs">
+                                            <span className="font-bold" style={{ color: 'var(--accent)' }}>{res.calories} ккал/100г</span>
+                                            {res.protein > 0 && <span style={{ color: '#60a5fa' }}>Б:{res.protein}</span>}
+                                            {res.fat > 0 && <span style={{ color: '#f87171' }}>Ж:{res.fat}</span>}
+                                            {res.carbs > 0 && <span style={{ color: '#fbbf24' }}>У:{res.carbs}</span>}
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
+                                    >
+                                        <CheckCircle size={18} />
+                                    </div>
+                                </button>
+                            ))
+                        ) : searchQuery.length > 2 && !isSearching ? (
+                            <p className="text-center text-sm py-4" style={{ color: 'var(--text-muted)' }}>Ничего не найдено</p>
+                        ) : searchQuery.length <= 2 ? (
+                            <div className="flex flex-col items-center justify-center py-8" style={{ opacity: 0.5 }}>
+                                <Search size={48} className="mb-3" style={{ color: 'var(--text-muted)' }} />
+                                <p className="text-center text-sm" style={{ color: 'var(--text-muted)' }}>Введи название продукта,<br/>чтобы найти его КБЖУ</p>
+                            </div>
+                        ) : null}
+                    </div>
+                </div>
+            ) : activeTab === 'text' ? (
                 <div className="px-5 tab-content">
                     <div className="card mb-4">
                         <p className="text-sm font-semibold text-gray-500 mb-3">Название блюда</p>
@@ -467,6 +580,15 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
                     </div>
                 </div>
             )}
+
+            {/* Gram Calculator Bottom Sheet */}
+            {selectedFood && (
+                <GramCalculatorSheet
+                    food={selectedFood}
+                    onAdd={handleAddSearchResult}
+                    onClose={() => setSelectedFood(null)}
+                />
+            )}
         </div>
     );
 };
@@ -474,3 +596,4 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
 function delay(ms: number) {
     return new Promise((res) => setTimeout(res, ms));
 }
+

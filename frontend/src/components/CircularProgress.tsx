@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 interface CircularProgressProps {
     current: number;
@@ -10,7 +10,7 @@ interface CircularProgressProps {
 export const CircularProgress: React.FC<CircularProgressProps> = ({
     current,
     goal,
-    size = 220,
+    size = 200,
     strokeWidth = 14,
 }) => {
     const percentage = Math.min((current / goal) * 100, 100);
@@ -23,12 +23,7 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
     const isOver = current > goal;
     const overAmount = current - goal;
 
-    // Color shift: sky blue → orange when close to limit
-    const progressColor = isOver
-        ? 'url(#overGradient)'
-        : percentage > 90
-            ? 'url(#warnGradient)'
-            : 'url(#progressGradient)';
+    const gradientId = isOver ? 'overGrad' : percentage > 90 ? 'warnGrad' : 'mainGrad';
 
     return (
         <div className="flex flex-col items-center">
@@ -36,20 +31,19 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
                 <svg
                     width={size}
                     height={size}
-                    className="circular-progress-svg"
-                    style={{ transform: 'rotate(-90deg)' }}
+                    style={{ transform: 'rotate(-90deg)', display: 'block' }}
                 >
                     <defs>
-                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#38bdf8" />
-                            <stop offset="100%" stopColor="#0ea5e9" />
+                        <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="var(--accent)" />
+                            <stop offset="100%" stopColor="var(--accent-2)" />
                         </linearGradient>
-                        <linearGradient id="warnGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#fb923c" />
-                            <stop offset="100%" stopColor="#f97316" />
+                        <linearGradient id="warnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#fbbf24" />
+                            <stop offset="100%" stopColor="#f59e0b" />
                         </linearGradient>
-                        <linearGradient id="overGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#ef4444" />
+                        <linearGradient id="overGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="var(--danger)" />
                             <stop offset="100%" stopColor="#dc2626" />
                         </linearGradient>
                         <filter id="glow">
@@ -63,21 +57,17 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
 
                     {/* Background track */}
                     <circle
-                        cx={center}
-                        cy={center}
-                        r={radius}
+                        cx={center} cy={center} r={radius}
                         fill="none"
-                        stroke="#e0f2fe"
+                        stroke="var(--track)"
                         strokeWidth={strokeWidth}
                     />
 
                     {/* Progress arc */}
                     <circle
-                        cx={center}
-                        cy={center}
-                        r={radius}
+                        cx={center} cy={center} r={radius}
                         fill="none"
-                        stroke={progressColor}
+                        stroke={`url(#${gradientId})`}
                         strokeWidth={strokeWidth}
                         strokeLinecap="round"
                         strokeDasharray={circumference}
@@ -90,37 +80,19 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
                 </svg>
 
                 {/* Center content */}
-                <div
-                    className="absolute inset-0 flex flex-col items-center justify-center"
-                    style={{ transform: 'none' }}
-                >
-                    <span className="text-3xl font-bold text-gray-800 leading-none">
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold leading-none" style={{ color: 'var(--text-primary)' }}>
                         {current.toLocaleString()}
                     </span>
-                    <div className="flex items-center gap-1 mt-1">
-                        <span className="text-sm text-gray-400 font-medium">из</span>
-                        <span className="text-sm font-semibold text-sky-500">
-                            {goal.toLocaleString()}
-                        </span>
-                    </div>
-                    <span className="text-xs text-gray-400 mt-0.5">ккал</span>
-                </div>
-            </div>
-
-            {/* Stats row */}
-            <div className="flex items-center gap-6 mt-4">
-                <div className="text-center">
-                    <p className={`text-lg font-bold ${isOver ? 'text-red-500' : 'text-sky-500'}`}>
-                        {isOver ? `+${overAmount}` : remaining}
-                    </p>
-                    <p className="text-xs text-gray-400 font-medium">
-                        {isOver ? 'превышено' : 'осталось'}
-                    </p>
-                </div>
-                <div className="w-px h-8 bg-gray-100" />
-                <div className="text-center">
-                    <p className="text-lg font-bold text-gray-700">{Math.round(percentage)}%</p>
-                    <p className="text-xs text-gray-400 font-medium">выполнено</p>
+                    <span className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                        из {goal.toLocaleString()} ккал
+                    </span>
+                    <span
+                        className="text-sm font-bold mt-1"
+                        style={{ color: isOver ? 'var(--danger)' : 'var(--accent)' }}
+                    >
+                        {isOver ? `+${overAmount} лишних` : `−${remaining} осталось`}
+                    </span>
                 </div>
             </div>
         </div>

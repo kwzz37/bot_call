@@ -2,38 +2,64 @@ import React, { useEffect, useState } from 'react';
 import { Dashboard, INITIAL_FOODS } from './screens/Dashboard';
 import { AddFood } from './screens/AddFood';
 import { Profile } from './screens/Profile';
+import { ProgressScreen } from './screens/ProgressScreen';
 import { BottomNav } from './components/BottomNav';
+import { Toast, ToastMessage } from './components/Toast';
 import { FoodItem } from './components/FoodCard';
 import { useTelegram } from './hooks/useTelegram';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { initUser, getStats } from './api';
 
-type Screen = 'dashboard' | 'add' | 'profile';
+type Screen = 'dashboard' | 'progress' | 'add' | 'profile';
 
-function App() {
+interface UserGoals {
+    calorieGoal: number;
+    proteinGoal: number;
+    carbsGoal: number;
+    fatGoal: number;
+    weight: number;
+    height: number;
+    age: number;
+}
+
+function AppInner() {
     const { user } = useTelegram();
     const [activeScreen, setActiveScreen] = useState<Screen>('dashboard');
     const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS);
-    const [calorieGoal, setCalorieGoal] = useState(2500);
+    const [goals, setGoals] = useState<UserGoals>({
+        calorieGoal: 2000,
+        proteinGoal: 150,
+        carbsGoal: 250,
+        fatGoal: 65,
+        weight: 70,
+        height: 175,
+        age: 25,
+    });
     const [waterMl, setWaterMl] = useState(0);
-    const [apiReady, setApiReady] = useState(false);
+    const [streak, setStreak] = useState(0);
+    const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-    // Initialize user with backend on mount
+    const pushToast = (text: string, type: ToastMessage['type'] = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, text, type }]);
+    };
+
+    const dismissToast = (id: number) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+    };
+
     useEffect(() => {
         if (!user) return;
-
         initUser({
             user_id: user.id,
             first_name: user.first_name,
             username: user.username,
         })
-            .then(() => {
-                // Load today's real food log from backend
-                return getStats(user.id);
-            })
+            .then(() => getStats(user.id))
             .then((stats) => {
-                setCalorieGoal(stats.calorie_goal);
+                setGoals(g => ({ ...g, calorieGoal: stats.calorie_goal }));
                 setWaterMl(stats.water_ml ?? 0);
-                // Map backend entries to FoodItem shape
+                setStreak(stats.streak ?? 0);
                 const mapped: FoodItem[] = stats.entries.map((e) => ({
                     id: String(e.id),
                     name: e.food_name,
@@ -42,19 +68,19 @@ function App() {
                     carbs: e.carbs ?? undefined,
                     fat: e.fat ?? undefined,
                     emoji: e.emoji ?? undefined,
-                    time: e.logged_at.slice(11, 16), // "HH:MM"
+                    time: e.logged_at.slice(11, 16),
                 }));
                 setFoods(mapped);
-                setApiReady(true);
             })
             .catch((err) => {
                 console.warn('Backend not reachable, running in offline mode:', err);
-                setApiReady(false);
             });
     }, [user?.id]);
 
     const handleAddFood = (item: FoodItem) => {
         setFoods((prev) => [item, ...prev]);
+        pushToast(`✅ Добавлено: ${item.name} — ${item.calories} ккал`);
+        setActiveScreen('dashboard');
     };
 
     const handleDeleteFood = (id: string) => {
@@ -62,16 +88,23 @@ function App() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 relative">
+        <div style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>
             <div key={activeScreen} className="animate-fade-in">
                 {activeScreen === 'dashboard' && (
                     <Dashboard
                         foods={foods}
                         onDeleteFood={handleDeleteFood}
-                        calorieGoal={calorieGoal}
+                        calorieGoal={goals.calorieGoal}
                         waterMl={waterMl}
                         setWaterMl={setWaterMl}
+                        streak={streak}
+                        proteinGoal={goals.proteinGoal}
+                        carbsGoal={goals.carbsGoal}
+                        fatGoal={goals.fatGoal}
                     />
+                )}
+                {activeScreen === 'progress' && (
+                    <ProgressScreen calorieGoal={goals.calorieGoal} />
                 )}
                 {activeScreen === 'add' && (
                     <AddFood
@@ -79,10 +112,24 @@ function App() {
                         onBack={() => setActiveScreen('dashboard')}
                     />
                 )}
-                {activeScreen === 'profile' && <Profile />}
+                {activeScreen === 'profile' && (
+                    <Profile
+                        goals={goals}
+                        onGoalsChange={(g) => setGoals(prev => ({ ...prev, ...g }))}
+                    />
+                )}
             </div>
             <BottomNav activeScreen={activeScreen} onNavigate={setActiveScreen} />
+            <Toast toasts={toasts} onDismiss={dismissToast} />
         </div>
+    );
+}
+
+function App() {
+    return (
+        <ThemeProvider>
+            <AppInner />
+        </ThemeProvider>
     );
 }
 

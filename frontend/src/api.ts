@@ -73,6 +73,16 @@ export interface AIFoodResult {
     log_id: number;
 }
 
+export interface FoodSearchResult {
+    food_name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    brand: string;
+    image_url: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -172,7 +182,28 @@ export async function scanBarcode(barcode: string): Promise<AIFoodResult> {
     return request<AIFoodResult>(`/api/barcode/${barcode}`);
 }
 
-/** Fetch weekly stats. */
 export async function getWeeklyStats(userId: number): Promise<WeeklyStatsResponse> {
     return request<WeeklyStatsResponse>(`/api/stats/weekly?user_id=${userId}`);
+}
+
+/** Search food in OpenFoodFacts. */
+export async function searchFood(query: string): Promise<FoodSearchResult[]> {
+    const params = new URLSearchParams({ q: query });
+    return request<FoodSearchResult[]>(`/api/search-food?${params}`);
+}
+
+/** Add food manually. */
+export async function addManual(userId: number, food: Partial<FoodSearchResult>): Promise<AIFoodResult> {
+    return request<AIFoodResult>('/api/add-manual', {
+        method: 'POST',
+        body: JSON.stringify({
+            user_id: userId,
+            food_name: food.food_name || 'Неизвестно',
+            calories: food.calories || 0,
+            protein: food.protein || 0,
+            carbs: food.carbs || 0,
+            fat: food.fat || 0,
+            emoji: '🍽️',
+        }),
+    });
 }

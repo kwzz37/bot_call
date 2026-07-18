@@ -1,7 +1,7 @@
 import React from 'react';
-import { Home, Plus, User } from 'lucide-react';
+import { Home, BarChart2, Plus, User } from 'lucide-react';
 
-type Screen = 'dashboard' | 'add' | 'profile';
+type Screen = 'dashboard' | 'progress' | 'add' | 'profile';
 
 interface BottomNavProps {
     activeScreen: Screen;
@@ -11,73 +11,56 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, onNavigate }) => {
     return (
         <div className="floating-dock">
-            <div className="flex items-center justify-around px-4 pt-3 pb-4">
+            <div className="flex items-center justify-around px-2 pt-2 pb-3">
+
                 {/* Home */}
-                <button
-                    onClick={() => onNavigate('dashboard')}
-                    className={`flex flex-col items-center gap-1 px-6 py-2 rounded-2xl transition-all duration-200 active:scale-90 ${activeScreen === 'dashboard'
-                            ? 'text-sky-500'
-                            : 'text-gray-400'
-                        }`}
-                >
-                    <div className={`relative p-2 rounded-2xl transition-all duration-200 ${activeScreen === 'dashboard' ? 'bg-sky-50' : ''
-                        }`}>
+                <button className={`nav-btn ${activeScreen === 'dashboard' ? 'active' : ''}`} onClick={() => onNavigate('dashboard')}>
+                    <div className="nav-icon-wrap">
                         <Home size={22} strokeWidth={activeScreen === 'dashboard' ? 2.5 : 1.8} />
-                        {activeScreen === 'dashboard' && (
-                            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1 w-1 h-1 rounded-full bg-sky-500" />
-                        )}
                     </div>
-                    <span className={`text-xs font-medium ${activeScreen === 'dashboard' ? 'text-sky-500' : 'text-gray-400'
-                        }`}>
-                        Главная
-                    </span>
+                    <span className="text-[10px] font-semibold">Главная</span>
                 </button>
 
-                {/* Add Button — big center */}
+                {/* Progress */}
+                <button className={`nav-btn ${activeScreen === 'progress' ? 'active' : ''}`} onClick={() => onNavigate('progress')}>
+                    <div className="nav-icon-wrap">
+                        <BarChart2 size={22} strokeWidth={activeScreen === 'progress' ? 2.5 : 1.8} />
+                    </div>
+                    <span className="text-[10px] font-semibold">Прогресс</span>
+                </button>
+
+                {/* Add — big center */}
                 <div className="flex flex-col items-center gap-1">
                     <button
                         onClick={() => onNavigate('add')}
-                        className={`relative flex items-center justify-center w-16 h-16 rounded-3xl
-              transition-all duration-200 active:scale-90 shadow-lg
-              ${activeScreen === 'add'
-                                ? 'bg-sky-600 shadow-sky-300'
-                                : 'bg-gradient-to-br from-sky-400 to-sky-600 shadow-sky-200'
-                            }`}
+                        className="flex items-center justify-center w-14 h-14 rounded-2xl transition-all duration-200 active:scale-90 shadow-lg"
+                        style={{
+                            background: activeScreen === 'add'
+                                ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
+                                : 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+                            boxShadow: '0 4px 20px rgba(99, 102, 241, 0.45)',
+                        }}
                     >
                         <Plus
-                            size={28}
+                            size={26}
                             strokeWidth={2.5}
-                            className={`text-white transition-transform duration-200 ${activeScreen === 'add' ? 'rotate-45' : 'rotate-0'
-                                }`}
+                            className="text-white transition-transform duration-200"
+                            style={{ transform: activeScreen === 'add' ? 'rotate(45deg)' : 'rotate(0deg)' }}
                         />
-                        <span className="absolute inset-0 rounded-3xl bg-white opacity-0 active:opacity-10 transition-opacity" />
                     </button>
-                    <span className={`text-xs font-medium ${activeScreen === 'add' ? 'text-sky-500' : 'text-gray-400'
-                        }`}>
+                    <span className="text-[10px] font-semibold" style={{ color: activeScreen === 'add' ? 'var(--accent)' : 'var(--text-muted)' }}>
                         Добавить
                     </span>
                 </div>
 
                 {/* Profile */}
-                <button
-                    onClick={() => onNavigate('profile')}
-                    className={`flex flex-col items-center gap-1 px-6 py-2 rounded-2xl transition-all duration-200 active:scale-90 ${activeScreen === 'profile'
-                            ? 'text-sky-500'
-                            : 'text-gray-400'
-                        }`}
-                >
-                    <div className={`relative p-2 rounded-2xl transition-all duration-200 ${activeScreen === 'profile' ? 'bg-sky-50' : ''
-                        }`}>
+                <button className={`nav-btn ${activeScreen === 'profile' ? 'active' : ''}`} onClick={() => onNavigate('profile')}>
+                    <div className="nav-icon-wrap">
                         <User size={22} strokeWidth={activeScreen === 'profile' ? 2.5 : 1.8} />
-                        {activeScreen === 'profile' && (
-                            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1 w-1 h-1 rounded-full bg-sky-500" />
-                        )}
                     </div>
-                    <span className={`text-xs font-medium ${activeScreen === 'profile' ? 'text-sky-500' : 'text-gray-400'
-                        }`}>
-                        Профиль
-                    </span>
+                    <span className="text-[10px] font-semibold">Профиль</span>
                 </button>
+
             </div>
         </div>
     );
