@@ -1,8 +1,12 @@
 import requests
 from google import genai
+import os
+from dotenv import load_dotenv
+
+load_dotenv("backend/.env")
 
 # Вставь ключ
-API_KEY = "AIzaSyAPnuJCUBA8QzxU8shSg96Rpf4qiB2exv8"
+API_KEY = os.getenv("GEMINI_API_KEY")
 print("🔍 ШАГ 1. Проверяем, какой IP видит Python...")
 try:
     # Проверяем, через какую страну реально идет запрос

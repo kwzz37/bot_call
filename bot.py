@@ -10,10 +10,15 @@ from aiogram.types import (
     WebAppInfo,
 )
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv("backend/.env")
+
 # ─── Настройки ───────────────────────────────────────────────
 
-BOT_TOKEN = "7980220992:AAEgZyWHirJZBFSIAhVpQZikg6cs--ktJbA"
-WEBAPP_URL = "https://kind-suits-stand.loca.lt"   # ← замените на ваш URL
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+WEBAPP_URL = "https://cuts-accuracy-raid-prep.trycloudflare.com"   # ← HTTPS обязателен для Telegram
 
 # ─── Bot & Dispatcher ────────────────────────────────────────
 

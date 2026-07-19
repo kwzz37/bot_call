@@ -10,6 +10,9 @@ import httpx
 from rapidfuzz import fuzz
 from contextlib import asynccontextmanager
 from typing import Annotated
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,7 +59,9 @@ from database import (
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAPnuJCUBA8QzxU8shSg96Rpf4qiB2exv8")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    logger.warning("GEMINI_API_KEY is missing! Please set it in .env file.")
 GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 food_ai = FoodAI(api_key=GEMINI_API_KEY, model=GEMINI_MODEL)
