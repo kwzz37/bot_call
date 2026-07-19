@@ -20,6 +20,8 @@ class UserUpdateRequest(BaseModel):
 class AddTextRequest(BaseModel):
     user_id: int
     text: str = Field(min_length=1, max_length=500)
+    meal_type: str = 'any'
+    log_date: str | None = None
 
 class FoodEntry(BaseModel):
     id: int
@@ -30,6 +32,7 @@ class FoodEntry(BaseModel):
     fat: float | None
     emoji: str | None
     source: str
+    meal_type: str
     logged_at: str
 
 class WaterEntry(BaseModel):
@@ -75,9 +78,19 @@ class ManualFoodRequest(BaseModel):
     carbs: float | None = Field(default=None, ge=0)
     fat: float | None = Field(default=None, ge=0)
     emoji: str | None = None
+    meal_type: str = 'any'
+    log_date: str | None = None
 
 class WeeklyStatsResponse(BaseModel):
     user_id: int
     streak: int
     weekly_calories: list[int]
     dates: list[str]
+
+class CustomFoodRequest(BaseModel):
+    user_id: int
+    food_name: str = Field(min_length=1, max_length=100)
+    calories: float = Field(ge=0)
+    protein: float = Field(ge=0)
+    carbs: float = Field(ge=0)
+    fat: float = Field(ge=0)

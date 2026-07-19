@@ -52,6 +52,7 @@ def init_db() -> None:
                 fat         REAL,
                 emoji       TEXT,
                 source      TEXT DEFAULT 'manual',  -- 'manual' | 'text_ai' | 'photo_ai'
+                meal_type   TEXT DEFAULT 'any',     -- 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'any'
                 logged_at   TEXT DEFAULT (datetime('now', 'localtime')),
                 date        TEXT DEFAULT (date('now')),
                 FOREIGN KEY (user_id) REFERENCES users(id)
@@ -74,6 +75,18 @@ def init_db() -> None:
                 logged_at   TEXT DEFAULT (datetime('now', 'localtime')),
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
+
+            CREATE TABLE IF NOT EXISTS custom_foods (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id     INTEGER NOT NULL,
+                food_name   TEXT NOT NULL,
+                calories    REAL NOT NULL,
+                protein     REAL NOT NULL,
+                carbs       REAL NOT NULL,
+                fat         REAL NOT NULL,
+                created_at  TEXT DEFAULT (datetime('now', 'localtime')),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
         """)
         
         # Add columns for streaks if they don't exist
@@ -83,6 +96,12 @@ def init_db() -> None:
             pass
         try:
             conn.execute("ALTER TABLE users ADD COLUMN last_active_date TEXT")
+        except sqlite3.OperationalError:
+            pass
+            
+        # Add meal_type to food_logs if it doesn't exist
+        try:
+            conn.execute("ALTER TABLE food_logs ADD COLUMN meal_type TEXT DEFAULT 'any'")
         except sqlite3.OperationalError:
             pass
 
@@ -135,24 +154,35 @@ def upsert_user(
 
 # ─────────────────────────── Food logs ───────────────────────────
 
+def add_custom_food(user_id: int, food_name: str, calories: float, protein: float, carbs: float, fat: float) -> int:
+    with get_conn() as conn:
+        cur = conn.execute("""
+            INSERT INTO custom_foods (user_id, food_name, calories, protein, carbs, fat)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (user_id, food_name, calories, protein, carbs, fat))
+        return cur.lastrowid
+
 def add_food_log(
     user_id: int,
     food_name: str,
     calories: int,
-    *,
     protein: float | None = None,
     carbs: float | None = None,
     fat: float | None = None,
     emoji: str | None = None,
-    source: str = "manual",
+    source: str = 'manual',
+    meal_type: str = 'any',
+    log_date: str | None = None
 ) -> int:
-    """Insert a food entry. Returns the new row id."""
-    today = date.today().isoformat()
     with get_conn() as conn:
-        cur = conn.execute("""
-            INSERT INTO food_logs (user_id, food_name, calories, protein, carbs, fat, emoji, source, date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (user_id, food_name, calories, protein, carbs, fat, emoji, source, today))
+        actual_date = log_date or date.today().isoformat()
+        cur = conn.execute(
+            """
+            INSERT INTO food_logs (user_id, food_name, calories, protein, carbs, fat, emoji, source, meal_type, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (user_id, food_name, calories, protein, carbs, fat, emoji, source, meal_type, actual_date)
+        )
         return cur.lastrowid
 
 
@@ -169,7 +199,7 @@ def get_today_logs(user_id: int) -> list[sqlite3.Row]:
     today = date.today().isoformat()
     with get_conn() as conn:
         return conn.execute("""
-            SELECT id, food_name, calories, protein, carbs, fat, emoji, source, logged_at
+            SELECT id, food_name, calories, protein, carbs, fat, emoji, source, meal_type, logged_at
             FROM food_logs
             WHERE user_id = ? AND date = ?
             ORDER BY logged_at DESC
@@ -179,11 +209,31 @@ def get_today_logs(user_id: int) -> list[sqlite3.Row]:
 def get_logs_by_date(user_id: int, target_date: str) -> list[sqlite3.Row]:
     with get_conn() as conn:
         return conn.execute("""
-            SELECT id, food_name, calories, protein, carbs, fat, emoji, source, logged_at
+            SELECT id, food_name, calories, protein, carbs, fat, emoji, source, meal_type, logged_at
             FROM food_logs
             WHERE user_id = ? AND date = ?
             ORDER BY logged_at DESC
         """, (user_id, target_date)).fetchall()
+
+def get_logs_by_date_range(user_id: int, start_date: str, end_date: str) -> list[sqlite3.Row]:
+    with get_conn() as conn:
+        return conn.execute("""
+            SELECT id, food_name, calories, protein, carbs, fat, emoji, source, meal_type, date, logged_at
+            FROM food_logs
+            WHERE user_id = ? AND date >= ? AND date <= ?
+            ORDER BY date DESC, logged_at DESC
+        """, (user_id, start_date, end_date)).fetchall()
+
+def get_recent_foods(user_id: int, limit: int = 20) -> list[sqlite3.Row]:
+    with get_conn() as conn:
+        return conn.execute("""
+            SELECT food_name, calories, protein, carbs, fat, emoji, MAX(logged_at) as last_logged
+            FROM food_logs
+            WHERE user_id = ?
+            GROUP BY food_name
+            ORDER BY last_logged DESC
+            LIMIT ?
+        """, (user_id, limit)).fetchall()
 
 
 # ─────────────────────────── Water & Weight ───────────────────────────
@@ -258,3 +308,16 @@ def update_user_streak(user_id: int) -> int:
             
         conn.execute("UPDATE users SET last_active_date = ?, current_streak = ? WHERE id = ?", (today, streak, user_id))
         return streak
+
+def search_custom_foods(query: str, limit: int = 10) -> list[dict]:
+    with get_conn() as conn:
+        rows = conn.execute(
+            """
+            SELECT * FROM custom_foods 
+            WHERE food_name LIKE ? 
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (f"%{query}%", limit)
+        ).fetchall()
+        return [dict(row) for row in rows]

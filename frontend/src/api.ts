@@ -16,6 +16,7 @@ export interface FoodEntry {
     fat: number | null;
     emoji: string | null;
     source: string;
+    meal_type: string;
     logged_at: string;
 }
 
@@ -131,18 +132,20 @@ export async function getStats(userId: number, date?: string): Promise<StatsResp
 }
 
 /** Add food by text description; Gemini infers calories. */
-export async function addByText(userId: number, text: string): Promise<AIFoodResult> {
+export async function addByText(userId: number, text: string, mealType: string = 'any', logDate?: string): Promise<AIFoodResult> {
     return request<AIFoodResult>('/api/add-text', {
         method: 'POST',
-        body: JSON.stringify({ user_id: userId, text }),
+        body: JSON.stringify({ user_id: userId, text, meal_type: mealType, log_date: logDate }),
     });
 }
 
 /** Upload a food photo; Gemini identifies the dish. */
-export async function analyzePhoto(userId: number, file: File): Promise<AIFoodResult> {
+export async function analyzePhoto(userId: number, file: File, mealType: string = 'any', logDate?: string): Promise<AIFoodResult> {
     const form = new FormData();
     form.append('user_id', String(userId));
     form.append('file', file);
+    form.append('meal_type', mealType);
+    if (logDate) form.append('log_date', logDate);
     const res = await fetch(`${BASE_URL}/api/analyze-photo`, {
         method: 'POST',
         body: form,
@@ -193,7 +196,7 @@ export async function searchFood(query: string): Promise<FoodSearchResult[]> {
 }
 
 /** Add food manually. */
-export async function addManual(userId: number, food: Partial<FoodSearchResult>): Promise<AIFoodResult> {
+export async function addManual(userId: number, food: Partial<FoodSearchResult>, mealType: string = 'any', logDate?: string): Promise<AIFoodResult> {
     return request<AIFoodResult>('/api/add-manual', {
         method: 'POST',
         body: JSON.stringify({
@@ -204,6 +207,36 @@ export async function addManual(userId: number, food: Partial<FoodSearchResult>)
             carbs: food.carbs || 0,
             fat: food.fat || 0,
             emoji: '🍽️',
+            meal_type: mealType,
+            log_date: logDate,
         }),
     });
+}
+
+export interface RecentFoodResult {
+    food_name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    emoji: string;
+}
+
+/** Create a custom food / recipe */
+export async function createCustomFood(
+    userId: number,
+    food: { food_name: string; calories: number; protein: number; carbs: number; fat: number; }
+): Promise<{ status: string; custom_food_id: number }> {
+    return request('/api/custom-food', {
+        method: 'POST',
+        body: JSON.stringify({
+            user_id: userId,
+            ...food
+        }),
+    });
+}
+
+/** Fetch recent foods */
+export async function getRecentFoods(userId: number): Promise<RecentFoodResult[]> {
+    return request<RecentFoodResult[]>(`/api/recent-foods?user_id=${userId}`);
 }

@@ -7,8 +7,9 @@ export interface FoodItem {
     protein?: number;
     carbs?: number;
     fat?: number;
-    time?: string;
     emoji?: string;
+    time?: string;
+    meal_type?: string;
 }
 
 interface FoodCardProps {

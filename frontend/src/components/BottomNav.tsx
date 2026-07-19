@@ -21,14 +21,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, onNavigate }
                     <span className="text-[10px] font-semibold">Главная</span>
                 </button>
 
-                {/* Progress */}
-                <button className={`nav-btn ${activeScreen === 'progress' ? 'active' : ''}`} onClick={() => onNavigate('progress')}>
-                    <div className="nav-icon-wrap">
-                        <BarChart2 size={22} strokeWidth={activeScreen === 'progress' ? 2.5 : 1.8} />
-                    </div>
-                    <span className="text-[10px] font-semibold">Прогресс</span>
-                </button>
-
                 {/* Add — big center */}
                 <div className="flex flex-col items-center gap-1">
                     <button
@@ -53,12 +45,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, onNavigate }
                     </span>
                 </div>
 
-                {/* Profile */}
-                <button className={`nav-btn ${activeScreen === 'profile' ? 'active' : ''}`} onClick={() => onNavigate('profile')}>
+                {/* Stats (Progress) */}
+                <button className={`nav-btn ${activeScreen === 'progress' ? 'active' : ''}`} onClick={() => onNavigate('progress')}>
                     <div className="nav-icon-wrap">
-                        <User size={22} strokeWidth={activeScreen === 'profile' ? 2.5 : 1.8} />
+                        <BarChart2 size={22} strokeWidth={activeScreen === 'progress' ? 2.5 : 1.8} />
                     </div>
-                    <span className="text-[10px] font-semibold">Профиль</span>
+                    <span className="text-[10px] font-semibold">Статистика</span>
                 </button>
 
             </div>

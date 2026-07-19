@@ -38,6 +38,9 @@ function AppInner() {
     const [waterMl, setWaterMl] = useState(0);
     const [streak, setStreak] = useState(0);
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
+    
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [selectedMealType, setSelectedMealType] = useState<string>('any');
 
     const pushToast = (text: string, type: ToastMessage['type'] = 'success') => {
         const id = Date.now();
@@ -55,7 +58,7 @@ function AppInner() {
             first_name: user.first_name,
             username: user.username,
         })
-            .then(() => getStats(user.id))
+            .then(() => getStats(user.id, selectedDate))
             .then((stats) => {
                 setGoals(g => ({ ...g, calorieGoal: stats.calorie_goal }));
                 setWaterMl(stats.water_ml ?? 0);
@@ -69,13 +72,14 @@ function AppInner() {
                     fat: e.fat ?? undefined,
                     emoji: e.emoji ?? undefined,
                     time: e.logged_at.slice(11, 16),
+                    meal_type: e.meal_type,
                 }));
                 setFoods(mapped);
             })
             .catch((err) => {
                 console.warn('Backend not reachable, running in offline mode:', err);
             });
-    }, [user?.id]);
+    }, [user?.id, selectedDate]);
 
     const handleAddFood = (item: FoodItem) => {
         setFoods((prev) => [item, ...prev]);
@@ -101,6 +105,13 @@ function AppInner() {
                         proteinGoal={goals.proteinGoal}
                         carbsGoal={goals.carbsGoal}
                         fatGoal={goals.fatGoal}
+                        onOpenProfile={() => setActiveScreen('profile')}
+                        selectedDate={selectedDate}
+                        setSelectedDate={setSelectedDate}
+                        onAddMeal={(meal) => {
+                            setSelectedMealType(meal);
+                            setActiveScreen('add');
+                        }}
                     />
                 )}
                 {activeScreen === 'progress' && (
@@ -110,6 +121,9 @@ function AppInner() {
                     <AddFood
                         onAdd={handleAddFood}
                         onBack={() => setActiveScreen('dashboard')}
+                        selectedDate={selectedDate}
+                        selectedMealType={selectedMealType}
+                        setSelectedMealType={setSelectedMealType}
                     />
                 )}
                 {activeScreen === 'profile' && (

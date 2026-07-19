@@ -1,21 +1,25 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Camera, Send, Sparkles, CheckCircle, AlertCircle, ChevronLeft, Barcode, Search } from 'lucide-react';
+import { Camera, Send, Sparkles, CheckCircle, AlertCircle, ChevronLeft, Barcode, Search, Mic, MicOff, Plus } from 'lucide-react';
 import { FoodItem } from '../components/FoodCard';
 import { GramCalculatorSheet } from '../components/GramCalculatorSheet';
+import { RecipeCalculator } from './RecipeCalculator';
 import { useTelegram } from '../hooks/useTelegram';
-import { addByText, analyzePhoto, scanBarcode, searchFood, FoodSearchResult, addManual } from '../api';
+import { addByText, analyzePhoto, scanBarcode, searchFood, FoodSearchResult, addManual, getRecentFoods, RecentFoodResult } from '../api';
 
-type Tab = 'search' | 'text' | 'photo' | 'barcode';
+type Tab = 'search' | 'text' | 'photo' | 'barcode' | 'recipe';
 type AIState = 'idle' | 'uploading' | 'analyzing' | 'done' | 'error';
 
 interface AddFoodProps {
     onAdd: (item: FoodItem) => void;
     onBack: () => void;
+    selectedDate?: string;
+    selectedMealType?: string;
+    setSelectedMealType?: (meal: string) => void;
 }
 
 const MEAL_EMOJIS = ['🍗', '🥗', '🍕', '🍜', '🥩', '🥣', '🍎', '🍌', '🧁', '🥤', '🍳', '🫐'];
 
-export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
+export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, selectedMealType = 'any', setSelectedMealType }) => {
     const { tapImpact, successFeedback, errorFeedback, user } = useTelegram();
     const [activeTab, setActiveTab] = useState<Tab>('search');
 
@@ -24,6 +28,13 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
     const [searchResults, setSearchResults] = useState<FoodSearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [selectedFood, setSelectedFood] = useState<FoodSearchResult | null>(null);
+    const [recentFoods, setRecentFoods] = useState<RecentFoodResult[]>([]);
+
+    useEffect(() => {
+        if (user?.id) {
+            getRecentFoods(user.id).then(setRecentFoods).catch(console.error);
+        }
+    }, [user?.id]);
 
     useEffect(() => {
         const timer = setTimeout(async () => {
@@ -44,12 +55,9 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Text tab state
-    const [foodName, setFoodName] = useState('');
-    const [calories, setCalories] = useState('');
-    const [protein, setProtein] = useState('');
-    const [carbs, setCarbs] = useState('');
-    const [fat, setFat] = useState('');
+    // Text tab state (now Smart Text / Voice)
+    const [smartText, setSmartText] = useState('');
+    const [isListening, setIsListening] = useState(false);
 
     // Barcode tab state
     const [barcodeStr, setBarcodeStr] = useState('');
@@ -60,23 +68,56 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
     const [aiResult, setAiResult] = useState<Partial<FoodItem> | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleTextAdd = () => {
-        if (!foodName.trim() || !calories.trim()) return;
-        tapImpact();
+    const toggleListening = () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Голосовой ввод не поддерживается в этом браузере.');
+            return;
+        }
+        
+        if (isListening) {
+            setIsListening(false);
+            return;
+        }
 
-        const item: FoodItem = {
-            id: Date.now().toString(),
-            name: foodName.trim(),
-            calories: parseInt(calories, 10) || 0,
-            protein: protein ? parseInt(protein, 10) : undefined,
-            carbs: carbs ? parseInt(carbs, 10) : undefined,
-            fat: fat ? parseInt(fat, 10) : undefined,
-            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            emoji: MEAL_EMOJIS[Math.floor(Math.random() * MEAL_EMOJIS.length)],
+        tapImpact();
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ru-RU';
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setSmartText(prev => prev ? prev + ' ' + transcript : transcript);
         };
-        successFeedback();
-        onAdd(item);
-        onBack();
+        recognition.onerror = () => setIsListening(false);
+        recognition.onend = () => setIsListening(false);
+        recognition.start();
+    };
+
+    const handleSmartTextAdd = async () => {
+        if (!smartText.trim() || !user?.id) return;
+        tapImpact();
+        setAiState('analyzing');
+        try {
+            const res = await addByText(user.id, smartText.trim(), selectedMealType, selectedDate);
+            const realResult: Partial<FoodItem> = {
+                id: res.log_id.toString(),
+                name: res.food,
+                calories: res.calories,
+                protein: res.protein || undefined,
+                carbs: res.carbs || undefined,
+                fat: res.fat || undefined,
+                emoji: res.emoji || '🍽️',
+            };
+            setAiResult(realResult);
+            setAiState('done');
+            successFeedback();
+        } catch (err) {
+            console.error('Smart text error:', err);
+            setAiState('error');
+            errorFeedback();
+        }
     };
 
     const handlePhotoCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +134,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
         setAiState('uploading');
         try {
             setAiState('analyzing');
-            const res = await analyzePhoto(user.id, file);
+            const res = await analyzePhoto(user.id, file, selectedMealType, selectedDate);
             
             const realResult: Partial<FoodItem> = {
                 id: res.log_id.toString(),
@@ -155,7 +196,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
             food_name: `${food.food_name} (${grams}г)`,
         };
         try {
-            const res = await addManual(user.id, scaledFood);
+            const res = await addManual(user.id, scaledFood, selectedMealType, selectedDate);
             const item: FoodItem = {
                 id: res.log_id.toString(),
                 name: res.food,
@@ -165,6 +206,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
                 fat: res.fat || undefined,
                 emoji: res.emoji || '🍽️',
                 time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                meal_type: selectedMealType,
             };
             onAdd(item);
             successFeedback();
@@ -187,6 +229,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
             fat: aiResult.fat,
             emoji: aiResult.emoji,
             time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            meal_type: selectedMealType,
         };
         successFeedback();
         onAdd(item);
@@ -200,20 +243,42 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
+    const [showRecipeCalc, setShowRecipeCalc] = useState(false);
+
+    if (showRecipeCalc) {
+        return <RecipeCalculator onBack={() => setShowRecipeCalc(false)} />;
+    }
+
     return (
         <div className="page-container">
             {/* Header */}
-            <div className="px-5 pt-6 pb-4 flex items-center gap-3">
-                <button
-                    onClick={() => { tapImpact(); onBack(); }}
-                    className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all active:scale-90"
-                    style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
-                >
-                    <ChevronLeft size={20} style={{ color: 'var(--text-primary)' }} />
-                </button>
-                <div>
-                    <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Добавить еду</h1>
+            <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => { tapImpact(); onBack(); }}
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all active:scale-90"
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+                    >
+                        <ChevronLeft size={20} style={{ color: 'var(--text-primary)' }} />
+                    </button>
+                    <div>
+                        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Добавить</h1>
+                    </div>
                 </div>
+                
+                {setSelectedMealType && (
+                    <select 
+                        value={selectedMealType} 
+                        onChange={(e) => setSelectedMealType(e.target.value)}
+                        className="bg-black/5 dark:bg-white/10 text-sm font-bold px-3 py-2 rounded-xl outline-none appearance-none"
+                    >
+                        <option value="breakfast">Завтрак</option>
+                        <option value="lunch">Обед</option>
+                        <option value="dinner">Ужин</option>
+                        <option value="snack">Перекус</option>
+                        <option value="any">Разное</option>
+                    </select>
+                )}
             </div>
 
             {/* Tab Switcher */}
@@ -222,10 +287,10 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
                     {(['search', 'text', 'photo', 'barcode'] as Tab[]).map((tab) => (
                         <button
                             key={tab}
-                            onClick={() => { tapImpact(); setActiveTab(tab); }}
+                            onClick={() => { tapImpact(); setActiveTab(tab); setAiState('idle'); }}
                             className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                         >
-                            {tab === 'search' ? '🔍 Поиск' : tab === 'text' ? '✏️ Вручную' : tab === 'photo' ? '📷 Фото' : '📊 Штрихкод'}
+                            {tab === 'search' ? '🔍 Поиск' : tab === 'text' ? '🤖 ИИ-Ввод' : tab === 'photo' ? '📷 Фото' : '📊 Штрихкод'}
                         </button>
                     ))}
                 </div>
@@ -251,6 +316,15 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
                             </div>
                         )}
                     </div>
+
+                    {/* Create Recipe Button */}
+                    <button
+                        onClick={() => { tapImpact(); setShowRecipeCalc(true); }}
+                        className="w-full flex items-center justify-center gap-2 py-3 mb-4 rounded-xl border-2 border-dashed border-blue-300 text-blue-500 font-semibold active:scale-95 transition-all bg-blue-50"
+                    >
+                        <Plus size={18} />
+                        Собрать свой рецепт
+                    </button>
 
                     <div className="space-y-2 pb-8">
                         {searchResults.length > 0 ? (
@@ -280,81 +354,142 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
                         ) : searchQuery.length > 2 && !isSearching ? (
                             <p className="text-center text-sm py-4" style={{ color: 'var(--text-muted)' }}>Ничего не найдено</p>
                         ) : searchQuery.length <= 2 ? (
-                            <div className="flex flex-col items-center justify-center py-8" style={{ opacity: 0.5 }}>
-                                <Search size={48} className="mb-3" style={{ color: 'var(--text-muted)' }} />
-                                <p className="text-center text-sm" style={{ color: 'var(--text-muted)' }}>Введи название продукта,<br/>чтобы найти его КБЖУ</p>
-                            </div>
+                            recentFoods.length > 0 ? (
+                                <div className="space-y-2 mt-4">
+                                    <h3 className="text-sm font-bold text-gray-500 mb-2 uppercase tracking-wide">Недавние</h3>
+                                    {recentFoods.map((res, i) => (
+                                        <button
+                                            key={`recent-${i}`}
+                                            onClick={() => { tapImpact(); setSelectedFood(res as any); }}
+                                            className="glass-card w-full p-3 flex items-center justify-between gap-3 active:scale-[0.98] transition-all text-left"
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">
+                                                {res.emoji || '🍽️'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{res.food_name}</p>
+                                                <div className="flex items-center gap-2 mt-1 text-xs">
+                                                    <span className="font-bold" style={{ color: 'var(--accent)' }}>{res.calories} ккал</span>
+                                                    {res.protein > 0 && <span style={{ color: '#60a5fa' }}>Б:{res.protein}</span>}
+                                                    {res.fat > 0 && <span style={{ color: '#f87171' }}>Ж:{res.fat}</span>}
+                                                    {res.carbs > 0 && <span style={{ color: '#fbbf24' }}>У:{res.carbs}</span>}
+                                                </div>
+                                            </div>
+                                            <div
+                                                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                                style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
+                                            >
+                                                <CheckCircle size={18} />
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-8" style={{ opacity: 0.5 }}>
+                                    <Search size={48} className="mb-3" style={{ color: 'var(--text-muted)' }} />
+                                    <p className="text-center text-sm" style={{ color: 'var(--text-muted)' }}>Введи название продукта,<br/>чтобы найти его КБЖУ</p>
+                                </div>
+                            )
                         ) : null}
                     </div>
                 </div>
             ) : activeTab === 'text' ? (
-                <div className="px-5 tab-content">
-                    <div className="card mb-4">
-                        <p className="text-sm font-semibold text-gray-500 mb-3">Название блюда</p>
-                        <input
-                            type="text"
-                            className="input-field mb-4"
-                            placeholder="Например: Куриная грудка"
-                            value={foodName}
-                            onChange={(e) => setFoodName(e.target.value)}
-                        />
-                        <p className="text-sm font-semibold text-gray-500 mb-3">Калории (ккал) *</p>
-                        <input
-                            type="number"
-                            inputMode="numeric"
-                            className="input-field mb-4"
-                            placeholder="350"
-                            value={calories}
-                            onChange={(e) => setCalories(e.target.value)}
-                        />
+                <div className="px-5 tab-content animate-fade-in">
+                    {aiState === 'idle' || aiState === 'error' ? (
+                        <>
+                            <div className="card mb-4">
+                                <h2 className="text-lg font-bold text-gray-800 mb-2">Напиши или продиктуй 🎙️</h2>
+                                <p className="text-sm text-gray-400 mb-4">
+                                    Например: "Съел тарелку борща со сметаной и два куска черного хлеба"
+                                </p>
+                                
+                                <div className="relative mb-4">
+                                    <textarea
+                                        className="input-field w-full min-h-[120px] resize-none py-3"
+                                        placeholder="Опиши свой приём пищи..."
+                                        value={smartText}
+                                        onChange={(e) => setSmartText(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={toggleListening}
+                                        className={`absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                                            isListening 
+                                                ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-200' 
+                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                                    </button>
+                                </div>
+                                
+                                {aiState === 'error' && (
+                                    <p className="text-sm text-red-500 mb-4 text-center bg-red-50 py-2 px-3 rounded-xl">
+                                        Не удалось распознать еду. Опиши подробнее.
+                                    </p>
+                                )}
 
-                        <p className="text-sm font-semibold text-gray-500 mb-3">Макронутриенты (необязательно)</p>
-                        <div className="grid grid-cols-3 gap-3">
-                            <div>
-                                <label className="text-xs text-blue-400 font-semibold mb-1 block">Белки, г</label>
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    className="input-field text-sm"
-                                    placeholder="0"
-                                    value={protein}
-                                    onChange={(e) => setProtein(e.target.value)}
-                                />
+                                <button
+                                    onClick={handleSmartTextAdd}
+                                    disabled={!smartText.trim()}
+                                    className="btn-primary w-full flex items-center justify-center gap-2"
+                                >
+                                    <Sparkles size={18} />
+                                    Распознать через ИИ
+                                </button>
                             </div>
-                            <div>
-                                <label className="text-xs text-amber-500 font-semibold mb-1 block">Углев., г</label>
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    className="input-field text-sm"
-                                    placeholder="0"
-                                    value={carbs}
-                                    onChange={(e) => setCarbs(e.target.value)}
-                                />
+                        </>
+                    ) : aiState === 'analyzing' ? (
+                        <div className="card flex flex-col items-center justify-center py-12 mb-4">
+                            <div className="relative mb-6">
+                                <div className="w-16 h-16 border-4 border-sky-100 border-t-sky-500 rounded-full animate-spin" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Sparkles size={24} className="text-sky-500 animate-pulse" />
+                                </div>
                             </div>
-                            <div>
-                                <label className="text-xs text-rose-400 font-semibold mb-1 block">Жиры, г</label>
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    className="input-field text-sm"
-                                    placeholder="0"
-                                    value={fat}
-                                    onChange={(e) => setFat(e.target.value)}
-                                />
-                            </div>
+                            <h3 className="text-lg font-bold text-gray-800">
+                                ИИ анализирует текст...
+                            </h3>
+                            <p className="text-sm text-gray-400 mt-1">Определяем калории и состав</p>
                         </div>
-                    </div>
+                    ) : aiState === 'done' && aiResult ? (
+                        <div className="card mb-4 animate-slide-up">
+                            <div className="flex items-center gap-2 mb-4">
+                                <CheckCircle size={20} className="text-emerald-500" />
+                                <p className="font-bold text-gray-800">ИИ определил блюдо</p>
+                            </div>
 
-                    <button
-                        onClick={handleTextAdd}
-                        disabled={!foodName.trim() || !calories.trim()}
-                        className={`btn-primary w-full flex items-center justify-center gap-2 ${!foodName.trim() || !calories.trim() ? 'opacity-40 cursor-not-allowed' : ''
-                            }`}
-                    >
-                        <Send size={18} />
-                        Добавить
-                    </button>
+                            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-2xl">
+                                <span className="text-3xl">{aiResult.emoji}</span>
+                                <div>
+                                    <p className="font-bold text-gray-800">{aiResult.name}</p>
+                                    <p className="text-2xl font-bold text-sky-500">{aiResult.calories} <span className="text-sm font-medium text-gray-400">ккал</span></p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2 mb-5">
+                                <div className="text-center p-2 bg-blue-50 rounded-xl">
+                                    <p className="text-sm font-bold text-blue-600">{aiResult.protein ?? 0}г</p>
+                                    <p className="text-xs text-blue-400">Белки</p>
+                                </div>
+                                <div className="text-center p-2 bg-amber-50 rounded-xl">
+                                    <p className="text-sm font-bold text-amber-600">{aiResult.carbs ?? 0}г</p>
+                                    <p className="text-xs text-amber-400">Углеводы</p>
+                                </div>
+                                <div className="text-center p-2 bg-rose-50 rounded-xl">
+                                    <p className="text-sm font-bold text-rose-500">{aiResult.fat ?? 0}г</p>
+                                    <p className="text-xs text-rose-400">Жиры</p>
+                                </div>
+                            </div>
+
+                            <button onClick={handleAddFromAI} className="btn-primary w-full flex items-center justify-center gap-2 mb-2">
+                                <CheckCircle size={18} />
+                                Добавить в дневник
+                            </button>
+                            <button onClick={() => setAiState('idle')} className="btn-secondary w-full text-center">
+                                Изменить текст
+                            </button>
+                        </div>
+                    ) : null}
                 </div>
             ) : activeTab === 'photo' ? (
                 <div className="px-5 tab-content">
@@ -489,12 +624,12 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack }) => {
                                     </p>
                                     <div className="w-full">
                                         <input
-                                            type="number"
+                                            type="text"
                                             inputMode="numeric"
                                             className="input-field w-full mb-4 text-center"
                                             placeholder="Например: 4601234567890"
                                             value={barcodeStr}
-                                            onChange={(e) => setBarcodeStr(e.target.value)}
+                                            onChange={(e) => setBarcodeStr(e.target.value.replace(/\D/g, ''))}
                                         />
                                     </div>
                                     {aiState === 'error' && (

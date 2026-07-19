@@ -4,7 +4,10 @@ main.py — FastAPI backend for Calorie Tracker Telegram Mini App
 
 import logging
 import os
+import urllib.parse
+import json
 import httpx
+from rapidfuzz import fuzz
 from contextlib import asynccontextmanager
 from typing import Annotated
 
@@ -25,6 +28,7 @@ from schemas import (
     WeightEntry,
     ManualFoodRequest,
     WeeklyStatsResponse,
+    CustomFoodRequest,
 )
 
 from ai import FoodAI
@@ -36,11 +40,15 @@ from database import (
     init_db,
     upsert_user,
     get_logs_by_date,
+    get_logs_by_date_range,
     add_water,
     delete_water,
     get_water_by_date,
     get_weight_history,
     update_user_streak,
+    add_custom_food,
+    search_custom_foods,
+    get_recent_foods,
 )
 
 # ─────────────────────────── Config ───────────────────────────
@@ -52,6 +60,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAPnuJCUBA8QzxU8shSg96Rpf4qiB
 GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 food_ai = FoodAI(api_key=GEMINI_API_KEY, model=GEMINI_MODEL)
+http_client = httpx.AsyncClient(timeout=5.0)
 
 # ─────────────────────────── App lifecycle ───────────────────────────
 
@@ -60,6 +69,7 @@ async def lifespan(app: FastAPI):
     init_db()
     logger.info("Database initialized. Model: %s", GEMINI_MODEL)
     yield
+    await http_client.aclose()
 
 app = FastAPI(
     title="Calorie Tracker API",
@@ -177,6 +187,7 @@ def get_stats(user_id: int, date: str | None = None):
             fat=r["fat"],
             emoji=r["emoji"],
             source=r["source"],
+            meal_type=r["meal_type"],
             logged_at=r["logged_at"],
         )
         for r in rows
@@ -228,6 +239,8 @@ async def add_text(body: AddTextRequest):
         fat=result.get("fat"),
         emoji=result.get("emoji"),
         source="text_ai",
+        meal_type=body.meal_type,
+        log_date=body.log_date,
     )
 
     return AIFoodResult(log_id=log_id, **result)
@@ -239,6 +252,8 @@ async def add_text(body: AddTextRequest):
 async def analyze_photo(
     user_id: Annotated[int, Form()],
     file: Annotated[UploadFile, File(description="Food photo (JPEG / PNG / WEBP)")],
+    meal_type: Annotated[str, Form()] = "any",
+    log_date: Annotated[str | None, Form()] = None,
 ):
     """
     Upload a food photo. Gemini vision identifies the dish and estimates calories.
@@ -279,6 +294,8 @@ async def analyze_photo(
         fat=result.get("fat"),
         emoji=result.get("emoji"),
         source="photo_ai",
+        meal_type=meal_type,
+        log_date=log_date,
     )
 
     return AIFoodResult(log_id=log_id, **result)
@@ -336,15 +353,17 @@ def add_manual(body: ManualFoodRequest):
         fat=body.fat,
         emoji=body.emoji,
         source="manual",
+        meal_type=body.meal_type,
+        log_date=body.log_date,
     )
     return AIFoodResult(
+        log_id=log_id,
         food=body.food_name,
         calories=body.calories,
         protein=body.protein,
         carbs=body.carbs,
         fat=body.fat,
         emoji=body.emoji,
-        log_id=log_id,
     )
 
 
@@ -353,8 +372,7 @@ def add_manual(body: ManualFoodRequest):
 @app.get("/api/barcode/{barcode}")
 async def scan_barcode(barcode: str):
     url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url)
+    resp = await http_client.get(url)
     if resp.status_code != 200:
         raise HTTPException(status_code=404, detail="Barcode API error")
         
@@ -378,11 +396,6 @@ async def scan_barcode(barcode: str):
 
 # ── 10. Search Food (OpenFoodFacts) ───────────────────────
 
-import urllib.parse
-import json
-import os
-from rapidfuzz import fuzz
-
 ENG_TO_RUS_KEYBOARD = str.maketrans(
     "qwertyuiop[]asdfghjkl;'zxcvbnm,.",
     "йцукенгшщзхъфывапролджэячсмитьбю"
@@ -397,6 +410,35 @@ ENG_TO_RUS_SOUND = {
     "twix": "твикс", "mars": "марс", "oreo": "орео", "lays": "лейс",
     "pringles": "принглс"
 }
+@app.post("/api/custom-food", status_code=status.HTTP_201_CREATED)
+def create_custom_food(body: CustomFoodRequest):
+    """Save a custom food/recipe to the database."""
+    _require_user(body.user_id)
+    food_id = add_custom_food(
+        user_id=body.user_id,
+        food_name=body.food_name,
+        calories=body.calories,
+        protein=body.protein,
+        carbs=body.carbs,
+        fat=body.fat,
+    )
+    return {"status": "ok", "custom_food_id": food_id}
+
+@app.get("/api/recent-foods")
+def recent_foods(user_id: int):
+    _require_user(user_id)
+    rows = get_recent_foods(user_id, limit=20)
+    return [
+        {
+            "food_name": r["food_name"],
+            "calories": r["calories"],
+            "protein": r["protein"],
+            "carbs": r["carbs"],
+            "fat": r["fat"],
+            "emoji": r["emoji"],
+        }
+        for r in rows
+    ]
 
 @app.get("/api/search-food")
 async def search_food(q: str):
@@ -417,7 +459,21 @@ async def search_food(q: str):
     
     queries = [q_str, q_kb, q_syn]
     
-    # 2. Search local DB first
+    # 2. Search Custom Foods from DB first
+    custom_results = search_custom_foods(q_str, limit=5)
+    for cr in custom_results:
+        results.append({
+            "food_name": cr["food_name"],
+            "calories": cr["calories"],
+            "protein": cr["protein"],
+            "carbs": cr["carbs"],
+            "fat": cr["fat"],
+            "brand": "Мой рецепт",
+            "image_url": "",
+        })
+        seen.add(cr["food_name"].lower())
+
+    # 3. Search local DB
     local_db_path = os.path.join(os.path.dirname(__file__), "local_db.json")
     if os.path.exists(local_db_path):
         with open(local_db_path, "r", encoding="utf-8") as f:
@@ -450,14 +506,13 @@ async def search_food(q: str):
                 })
                 seen.add(lf["food_name"].lower())
     
-    # 2. Try OpenFoodFacts
+    # 4. Try OpenFoodFacts
     q_encoded = urllib.parse.quote(q.strip())
     url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={q_encoded}&search_simple=1&action=process&json=1&page_size=20"
     
     try:
-        async with httpx.AsyncClient(timeout=3.0) as client:
-            resp = await client.get(url, headers={"User-Agent": "CalorieTrackerApp/1.0"})
-            if resp.status_code == 200:
+        resp = await http_client.get(url, headers={"User-Agent": "CalorieTrackerApp/1.0"})
+        if resp.status_code == 200:
                 data = resp.json()
                 products = data.get("products", [])
                 for p in products:
@@ -498,12 +553,19 @@ def get_weekly_stats(user_id: int):
     from datetime import date as date_cls, timedelta
     today = date_cls.today()
     dates = [(today - timedelta(days=i)).isoformat() for i in range(6, -1, -1)]
-    weekly_calories = []
     
-    for d in dates:
-        rows = get_logs_by_date(user_id, d)
-        weekly_calories.append(sum(r["calories"] for r in rows))
-        
+    start_date = dates[0]
+    end_date = dates[-1]
+    all_logs = get_logs_by_date_range(user_id, start_date, end_date)
+    
+    weekly_calories = [0] * 7
+    for log in all_logs:
+        try:
+            day_idx = dates.index(log["date"])
+            weekly_calories[day_idx] += log["calories"]
+        except ValueError:
+            pass
+            
     streak = update_user_streak(user_id)
     return WeeklyStatsResponse(
         user_id=user_id,

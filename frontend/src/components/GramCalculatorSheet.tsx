@@ -44,7 +44,7 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
 
             {/* Sheet */}
             <div
-                className="glass-sheet fixed bottom-0 left-0 right-0 z-50 px-5 pt-4 pb-10"
+                className="glass-sheet fixed bottom-0 left-0 right-0 z-50 px-5 pt-4 pb-[100px]"
             >
                 {/* Handle */}
                 <div className="flex justify-center mb-4">
@@ -83,12 +83,13 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
 
                     <div className="flex-1 flex flex-col items-center">
                         <input
-                            type="number"
+                            type="text"
                             inputMode="numeric"
-                            min={1}
-                            max={2000}
                             value={gramsStr}
-                            onChange={handleInputChange}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                handleInputChange({ ...e, target: { ...e.target, value: val } });
+                            }}
                             className="input-field text-center text-3xl font-bold"
                             style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}
                         />

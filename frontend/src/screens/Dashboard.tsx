@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CircularProgress } from '../components/CircularProgress';
 import { FoodCard, FoodItem } from '../components/FoodCard';
-import { Droplets, Zap, Beef, Wheat, FlameKindling, Plus, Minus } from 'lucide-react';
+import { Droplets, Zap, Beef, Wheat, FlameKindling, Plus, Minus, ChevronLeft } from 'lucide-react';
 import { useTelegram } from '../hooks/useTelegram';
 import { logWater } from '../api';
 
@@ -17,19 +17,30 @@ function getGreeting(): string {
     return 'Добрый вечер 🌙';
 }
 
+const MEALS_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEALS_LABELS: Record<string, string> = {
+    'breakfast': 'Завтрак 🍳',
+    'lunch': 'Обед 🍽️',
+    'dinner': 'Ужин 🌙',
+    'snack': 'Перекус 🍎',
+    'any': 'Разное 🥗'
+};
+
 function groupFoodByMeal(foods: FoodItem[]): Record<string, FoodItem[]> {
     const groups: Record<string, FoodItem[]> = {
-        'Завтрак 🍳': [],
-        'Обед 🍽️': [],
-        'Полдник 🍎': [],
-        'Ужин 🌙': [],
+        'breakfast': [],
+        'lunch': [],
+        'dinner': [],
+        'snack': [],
+        'any': [],
     };
     foods.forEach(f => {
-        const h = f.time ? parseInt(f.time.split(':')[0], 10) : 12;
-        if (h < 11) groups['Завтрак 🍳'].push(f);
-        else if (h < 15) groups['Обед 🍽️'].push(f);
-        else if (h < 19) groups['Полдник 🍎'].push(f);
-        else groups['Ужин 🌙'].push(f);
+        const type = f.meal_type || 'any';
+        if (groups[type]) {
+            groups[type].push(f);
+        } else {
+            groups['any'].push(f);
+        }
     });
     return groups;
 }
@@ -44,6 +55,10 @@ interface DashboardProps {
     proteinGoal?: number;
     carbsGoal?: number;
     fatGoal?: number;
+    onOpenProfile?: () => void;
+    selectedDate: string;
+    setSelectedDate: (date: string) => void;
+    onAddMeal: (mealType: string) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -56,6 +71,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     proteinGoal = 150,
     carbsGoal = 250,
     fatGoal = 70,
+    onOpenProfile,
+    selectedDate,
+    setSelectedDate,
+    onAddMeal,
 }) => {
     const { user, tapImpact } = useTelegram();
     const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -106,19 +125,62 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>{getGreeting()}</p>
                         <h1 className="text-2xl font-bold mt-0.5" style={{ color: 'var(--text-primary)' }}>{firstName}!</h1>
                     </div>
-                    {streak > 0 && (
-                        <div
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl"
-                            style={{ background: 'linear-gradient(135deg, #f97316, #ef4444)', boxShadow: '0 4px 12px rgba(249,115,22,0.35)' }}
-                        >
-                            <FlameKindling size={16} className="text-white" />
-                            <span className="text-white text-sm font-bold">{streak}</span>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-3">
+                        {streak > 0 && (
+                            <div
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl"
+                                style={{ background: 'linear-gradient(135deg, #f97316, #ef4444)', boxShadow: '0 4px 12px rgba(249,115,22,0.35)' }}
+                            >
+                                <FlameKindling size={16} className="text-white" />
+                                <span className="text-white text-sm font-bold">{streak}</span>
+                            </div>
+                        )}
+                        <button onClick={onOpenProfile} className="p-2 rounded-xl bg-black/5 dark:bg-white/5 active:scale-95 transition-transform">
+                            <Zap size={20} style={{ color: 'var(--text-secondary)' }} />
+                        </button>
+                    </div>
                 </div>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                    {new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </p>
+                
+                {/* ── Date Ribbon ── */}
+                <div className="flex items-center justify-between mt-4 bg-white/50 dark:bg-black/20 p-2 rounded-2xl backdrop-blur-sm border border-black/5 dark:border-white/5 shadow-sm">
+                    <button 
+                        onClick={() => {
+                            const d = new Date(selectedDate);
+                            d.setDate(d.getDate() - 1);
+                            setSelectedDate(d.toISOString().split('T')[0]);
+                        }}
+                        className="p-2 rounded-xl active:bg-black/5 dark:active:bg-white/10 transition-colors"
+                    >
+                        <ChevronLeft size={20} className="text-gray-500" />
+                    </button>
+                    
+                    <div className="flex flex-col items-center">
+                        <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                            {selectedDate === new Date().toISOString().split('T')[0] 
+                                ? 'Сегодня' 
+                                : new Date(selectedDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                            {new Date(selectedDate).toLocaleDateString('ru-RU', { weekday: 'long' })}
+                        </span>
+                    </div>
+
+                    <button 
+                        onClick={() => {
+                            const d = new Date(selectedDate);
+                            d.setDate(d.getDate() + 1);
+                            const nextDateStr = d.toISOString().split('T')[0];
+                            const todayStr = new Date().toISOString().split('T')[0];
+                            if (nextDateStr <= todayStr) {
+                                setSelectedDate(nextDateStr);
+                            }
+                        }}
+                        disabled={selectedDate === new Date().toISOString().split('T')[0]}
+                        className={`p-2 rounded-xl transition-colors ${selectedDate === new Date().toISOString().split('T')[0] ? 'opacity-30' : 'active:bg-black/5 dark:active:bg-white/10'}`}
+                    >
+                        <ChevronLeft size={20} className="text-gray-500 rotate-180" />
+                    </button>
+                </div>
             </div>
 
             {/* ── Calorie Ring ── */}
@@ -179,37 +241,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </span>
                 </div>
 
-                {foods.length === 0 ? (
-                    <div className="card flex flex-col items-center py-10 text-center">
-                        <span className="text-5xl mb-3">🍽️</span>
-                        <p className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Пока пусто</p>
-                        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Нажми «+» чтобы добавить</p>
-                    </div>
-                ) : (
-                    Object.entries(grouped).map(([mealName, items]) => {
-                        if (items.length === 0) return null;
-                        const isOpen = !collapsed[mealName];
-                        return (
-                            <div key={mealName} className="mb-2">
-                                <button
-                                    className="flex items-center justify-between w-full py-2 px-1 mb-1 rounded-xl transition-all active:scale-[0.98]"
-                                    onClick={() => setCollapsed(p => ({ ...p, [mealName]: !p[mealName] }))}
-                                >
-                                    <span className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>{mealName}</span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>
-                                            {items.reduce((s, i) => s + i.calories, 0)} ккал
+                {MEALS_ORDER.map(mealKey => {
+                    const items = grouped[mealKey] || [];
+                    const isOpen = !collapsed[mealKey];
+                    const mealCals = items.reduce((s, i) => s + i.calories, 0);
+                    
+                    // Don't show "any" if it's empty
+                    if (mealKey === 'any' && items.length === 0) return null;
+
+                    return (
+                        <div key={mealKey} className="mb-4 bg-white dark:bg-[#1c1c1e] rounded-2xl p-3 shadow-sm border border-black/5 dark:border-white/5">
+                            <button
+                                className="flex items-center justify-between w-full mb-2 transition-all active:scale-[0.98]"
+                                onClick={() => setCollapsed(p => ({ ...p, [mealKey]: !p[mealKey] }))}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
+                                        {MEALS_LABELS[mealKey]}
+                                    </span>
+                                    {mealCals > 0 && (
+                                        <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500">
+                                            {mealCals} ккал
                                         </span>
-                                        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{isOpen ? '▲' : '▼'}</span>
-                                    </div>
-                                </button>
-                                {isOpen && items.map(item => (
-                                    <FoodCard key={item.id} item={item} onDelete={onDeleteFood} />
-                                ))}
-                            </div>
-                        );
-                    })
-                )}
+                                    )}
+                                </div>
+                                <span className="text-xs text-gray-400">
+                                    {isOpen ? 'Скрыть' : 'Раскрыть'}
+                                </span>
+                            </button>
+                            
+                            {isOpen && (
+                                <div className="space-y-2">
+                                    {items.map(item => (
+                                        <FoodCard key={item.id} item={item} onDelete={onDeleteFood} />
+                                    ))}
+                                    <button 
+                                        onClick={() => onAddMeal(mealKey)}
+                                        className="w-full py-3 mt-1 rounded-xl border-2 border-dashed border-sky-200 dark:border-sky-900 text-sky-500 dark:text-sky-400 font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-sky-50 dark:hover:bg-sky-900/20"
+                                    >
+                                        <Plus size={16} /> Добавить {MEALS_LABELS[mealKey].split(' ')[0].toLowerCase()}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart2, TrendingUp, Flame, Calendar } from 'lucide-react';
 import { useTelegram } from '../hooks/useTelegram';
-import { getWeeklyStats, WeeklyStatsResponse } from '../api';
+import { getWeeklyStats, WeeklyStatsResponse, getWeightHistory, WeightEntry, updateUser } from '../api';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface ProgressScreenProps {
     calorieGoal: number;
@@ -10,18 +11,40 @@ interface ProgressScreenProps {
 const DAY_NAMES = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 export const ProgressScreen: React.FC<ProgressScreenProps> = ({ calorieGoal }) => {
-    const { user } = useTelegram();
+    const { user, tapImpact } = useTelegram();
     const [stats, setStats] = useState<WeeklyStatsResponse | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const [weightHistory, setWeightHistory] = useState<WeightEntry[]>([]);
+    const [isEditingWeight, setIsEditingWeight] = useState(false);
+    const [newWeight, setNewWeight] = useState('');
+    const [isSavingWeight, setIsSavingWeight] = useState(false);
 
     useEffect(() => {
         if (!user?.id) return;
         setLoading(true);
-        getWeeklyStats(user.id)
-            .then(setStats)
-            .catch(console.error)
-            .finally(() => setLoading(false));
+        Promise.all([
+            getWeeklyStats(user.id).then(setStats),
+            getWeightHistory(user.id).then(setWeightHistory)
+        ]).catch(console.error).finally(() => setLoading(false));
     }, [user?.id]);
+
+    const handleSaveWeight = async () => {
+        if (!newWeight || !user?.id) return;
+        tapImpact();
+        setIsSavingWeight(true);
+        try {
+            await updateUser(user.id, { weight: parseFloat(newWeight) });
+            const history = await getWeightHistory(user.id);
+            setWeightHistory(history);
+            setIsEditingWeight(false);
+            setNewWeight('');
+        } catch (e) {
+            console.error('Failed to update weight', e);
+        } finally {
+            setIsSavingWeight(false);
+        }
+    };
 
     const maxCal = stats
         ? Math.max(...stats.weekly_calories, calorieGoal, 1)
@@ -179,6 +202,79 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({ calorieGoal }) =
                         <p className="text-lg font-bold mt-0.5" style={{ color: 'var(--accent)' }}>
                             {(calorieGoal * 7).toLocaleString()}
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Weight Chart */}
+            <div className="mx-5 mb-5 pb-5">
+                <div className="card">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp size={16} style={{ color: '#8b5cf6' }} />
+                            <h2 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Изменение веса</h2>
+                        </div>
+                        <button 
+                            onClick={() => setIsEditingWeight(!isEditingWeight)}
+                            className="text-xs font-bold px-2 py-1 bg-violet-100 text-violet-600 rounded-lg"
+                        >
+                            {isEditingWeight ? 'Отмена' : 'Обновить'}
+                        </button>
+                    </div>
+
+                    {isEditingWeight && (
+                        <div className="flex gap-2 mb-4 animate-fade-in">
+                            <input 
+                                type="text"
+                                inputMode="numeric"
+                                className="input-field flex-1 py-2 text-sm" 
+                                placeholder="Новый вес (кг)..."
+                                value={newWeight}
+                                onChange={(e) => setNewWeight(e.target.value.replace(/[^\d.]/g, ''))}
+                            />
+                            <button 
+                                onClick={handleSaveWeight}
+                                disabled={!newWeight || isSavingWeight}
+                                className="btn-primary py-2 px-4 text-sm whitespace-nowrap"
+                            >
+                                Сохранить
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="h-48 w-full mt-2" style={{ marginLeft: '-15px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={weightHistory}>
+                                <XAxis 
+                                    dataKey="date" 
+                                    tickFormatter={(val) => val.slice(5, 10)} 
+                                    stroke="var(--text-muted)" 
+                                    fontSize={10} 
+                                    tickLine={false} 
+                                    axisLine={false} 
+                                />
+                                <YAxis 
+                                    domain={['dataMin - 1', 'dataMax + 1']} 
+                                    stroke="var(--text-muted)" 
+                                    fontSize={10} 
+                                    tickLine={false} 
+                                    axisLine={false} 
+                                    width={40}
+                                />
+                                <Tooltip 
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                    formatter={(value: any) => [`${value} кг`, 'Вес']}
+                                />
+                                <Line 
+                                    type="monotone" 
+                                    dataKey="weight" 
+                                    stroke="#8b5cf6" 
+                                    strokeWidth={3} 
+                                    dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }} 
+                                    activeDot={{ r: 6 }} 
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>

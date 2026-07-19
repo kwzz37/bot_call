@@ -60,15 +60,8 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange }) => {
         10 * draft.weight + 6.25 * draft.height - 5 * draft.age + 5
     );
 
-    const FieldRow = ({ icon, label, value, unit, field, color }: {
-        icon: React.ReactNode;
-        label: string;
-        value: number;
-        unit: string;
-        field: keyof UserGoals;
-        color: string;
-    }) => (
-        <div className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+    const renderFieldRow = (icon: React.ReactNode, label: string, value: number, unit: string, field: keyof UserGoals, color: string) => (
+        <div key={field} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent-bg)' }}>
                     {icon}
@@ -77,12 +70,15 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange }) => {
             </div>
             {editing ? (
                 <input
-                    type="number"
+                    type="text"
                     inputMode="numeric"
                     className="w-24 text-right font-bold text-sm bg-transparent outline-none border-b-2"
                     style={{ color, borderColor: 'var(--accent)' }}
-                    value={draft[field] as number}
-                    onChange={(e) => setDraft(d => ({ ...d, [field]: parseFloat(e.target.value) || 0 }))}
+                    value={draft[field] || ''}
+                    onChange={(e) => {
+                        const val = e.target.value.replace(/[^\d.]/g, '');
+                        setDraft(d => ({ ...d, [field]: val === '' ? 0 : parseFloat(val) }));
+                    }}
                 />
             ) : (
                 <span className="font-bold text-sm" style={{ color }}>
@@ -141,10 +137,10 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange }) => {
                     Цели питания
                 </p>
                 <div className="card">
-                    <FieldRow icon={<Target size={16} style={{ color: 'var(--accent)' }} />} label="Калории" value={merged.calorieGoal} unit="ккал" field="calorieGoal" color="var(--accent)" />
-                    <FieldRow icon={<span className="text-sm font-bold" style={{ color: '#60a5fa' }}>Б</span>} label="Белки" value={merged.proteinGoal} unit="г" field="proteinGoal" color="#60a5fa" />
-                    <FieldRow icon={<span className="text-sm font-bold" style={{ color: '#fbbf24' }}>У</span>} label="Углеводы" value={merged.carbsGoal} unit="г" field="carbsGoal" color="#fbbf24" />
-                    <FieldRow icon={<span className="text-sm font-bold" style={{ color: '#f87171' }}>Ж</span>} label="Жиры" value={merged.fatGoal} unit="г" field="fatGoal" color="#f87171" />
+                    {renderFieldRow(<Target size={16} style={{ color: 'var(--accent)' }} />, "Калории", merged.calorieGoal, "ккал", "calorieGoal", "var(--accent)")}
+                    {renderFieldRow(<span className="text-sm font-bold" style={{ color: '#60a5fa' }}>Б</span>, "Белки", merged.proteinGoal, "г", "proteinGoal", "#60a5fa")}
+                    {renderFieldRow(<span className="text-sm font-bold" style={{ color: '#fbbf24' }}>У</span>, "Углеводы", merged.carbsGoal, "г", "carbsGoal", "#fbbf24")}
+                    {renderFieldRow(<span className="text-sm font-bold" style={{ color: '#f87171' }}>Ж</span>, "Жиры", merged.fatGoal, "г", "fatGoal", "#f87171")}
                 </div>
             </div>
 
@@ -154,9 +150,9 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange }) => {
                     Параметры тела
                 </p>
                 <div className="card">
-                    <FieldRow icon={<Scale size={16} style={{ color: 'var(--accent)' }} />} label="Текущий вес" value={merged.weight} unit="кг" field="weight" color="var(--text-primary)" />
-                    <FieldRow icon={<Ruler size={16} style={{ color: 'var(--accent)' }} />} label="Рост" value={merged.height} unit="см" field="height" color="var(--text-primary)" />
-                    <FieldRow icon={<Calendar size={16} style={{ color: 'var(--accent)' }} />} label="Возраст" value={merged.age} unit="лет" field="age" color="var(--text-primary)" />
+                    {renderFieldRow(<Scale size={16} style={{ color: 'var(--accent)' }} />, "Текущий вес", merged.weight, "кг", "weight", "var(--text-primary)")}
+                    {renderFieldRow(<Ruler size={16} style={{ color: 'var(--accent)' }} />, "Рост", merged.height, "см", "height", "var(--text-primary)")}
+                    {renderFieldRow(<Calendar size={16} style={{ color: 'var(--accent)' }} />, "Возраст", merged.age, "лет", "age", "var(--text-primary)")}
                 </div>
             </div>
 
