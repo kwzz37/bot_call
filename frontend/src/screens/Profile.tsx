@@ -109,6 +109,8 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange, onResetO
     };
 
     const renderField = (
+        icon: React.ReactNode,
+        iconBg: string,
         label: string,
         value: number,
         unit: string,
@@ -116,7 +118,21 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange, onResetO
         color: string = 'var(--text-primary)'
     ) => (
         <div key={field} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>{label}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
+                    background: iconBg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                }}>
+                    {icon}
+                </div>
+                <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>{label}</span>
+            </div>
             {editing ? (
                 <input
                     type="text"
@@ -259,39 +275,10 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange, onResetO
                     Цели питания
                 </p>
                 <div className="card">
-                    {renderField('Калории', merged.calorieGoal, 'ккал', 'calorieGoal', 'var(--accent)')}
-                    {renderField('Белки', merged.proteinGoal, 'г', 'proteinGoal', '#60a5fa')}
-                    {renderField('Углеводы', merged.carbsGoal, 'г', 'carbsGoal', '#fbbf24')}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>Жиры</span>
-                        {editing ? (
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                style={{
-                                    width: 90,
-                                    textAlign: 'right',
-                                    fontWeight: 700,
-                                    fontSize: 14,
-                                    background: 'transparent',
-                                    outline: 'none',
-                                    border: 'none',
-                                    borderBottom: '2px solid var(--accent)',
-                                    color: '#f87171',
-                                    padding: '2px 4px',
-                                }}
-                                value={draft.fatGoal || ''}
-                                onChange={(e) => {
-                                    const val = e.target.value.replace(/[^\d.]/g, '');
-                                    setDraft(d => ({ ...d, fatGoal: val === '' ? 0 : parseFloat(val) }));
-                                }}
-                            />
-                        ) : (
-                            <span style={{ fontWeight: 700, fontSize: 14, color: '#f87171' }}>
-                                {merged.fatGoal} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 12 }}>г</span>
-                            </span>
-                        )}
-                    </div>
+                    {renderField(<Target size={16} style={{ color: 'var(--accent)' }} />, 'var(--accent-bg)', 'Калории', merged.calorieGoal, 'ккал', 'calorieGoal', 'var(--accent)')}
+                    {renderField(<span className="text-xs font-black" style={{ color: '#60a5fa' }}>Б</span>, 'rgba(96,165,250,0.12)', 'Белки', merged.proteinGoal, 'г', 'proteinGoal', '#60a5fa')}
+                    {renderField(<span className="text-xs font-black" style={{ color: '#fbbf24' }}>У</span>, 'rgba(251,191,36,0.12)', 'Углеводы', merged.carbsGoal, 'г', 'carbsGoal', '#fbbf24')}
+                    {renderField(<span className="text-xs font-black" style={{ color: '#f87171' }}>Ж</span>, 'rgba(248,113,113,0.12)', 'Жиры', merged.fatGoal, 'г', 'fatGoal', '#f87171')}
                 </div>
             </div>
 
@@ -301,38 +288,9 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange, onResetO
                     Параметры тела
                 </p>
                 <div className="card">
-                    {renderField('Вес', merged.weight, 'кг', 'weight')}
-                    {renderField('Рост', merged.height, 'см', 'height')}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>Возраст</span>
-                        {editing ? (
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                style={{
-                                    width: 90,
-                                    textAlign: 'right',
-                                    fontWeight: 700,
-                                    fontSize: 14,
-                                    background: 'transparent',
-                                    outline: 'none',
-                                    border: 'none',
-                                    borderBottom: '2px solid var(--accent)',
-                                    color: 'var(--text-primary)',
-                                    padding: '2px 4px',
-                                }}
-                                value={draft.age || ''}
-                                onChange={(e) => {
-                                    const val = e.target.value.replace(/[^\d]/g, '');
-                                    setDraft(d => ({ ...d, age: val === '' ? 0 : parseInt(val) }));
-                                }}
-                            />
-                        ) : (
-                            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
-                                {merged.age} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 12 }}>лет</span>
-                            </span>
-                        )}
-                    </div>
+                    {renderField(<Scale size={16} style={{ color: '#22c55e' }} />, 'rgba(34,197,94,0.12)', 'Вес', merged.weight, 'кг', 'weight', '#22c55e')}
+                    {renderField(<Ruler size={16} style={{ color: '#38bdf8' }} />, 'rgba(56,189,248,0.12)', 'Рост', merged.height, 'см', 'height')}
+                    {renderField(<Calendar size={16} style={{ color: '#f59e0b' }} />, 'rgba(245,158,11,0.12)', 'Возраст', merged.age, 'лет', 'age')}
                 </div>
             </div>
 
