@@ -59,6 +59,7 @@ interface DashboardProps {
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     onAddMeal: (mealType: string) => void;
+    waterGoal?: number;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -71,6 +72,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     proteinGoal = 150,
     carbsGoal = 250,
     fatGoal = 70,
+    waterGoal = WATER_GOAL,
     onOpenProfile,
     selectedDate,
     setSelectedDate,

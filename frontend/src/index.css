@@ -24,6 +24,7 @@
   --warn:          #f59e0b;
   --track:         #e8ecf4;
   --water:         #38bdf8;
+  --nav-height:    70px;
 }
 
 html.dark {
@@ -60,6 +61,8 @@ html.dark {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
     color-scheme: light dark;
+    /* Use dvh for keyboard-aware height */
+    height: -webkit-fill-available;
   }
 
   body {
@@ -68,16 +71,31 @@ html.dark {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background-color: var(--bg-base);
     color: var(--text-primary);
-    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* Prevent iOS bounce that can confuse keyboard detection */
+    overscroll-behavior-y: none;
   }
 
   #root {
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
+  }
+
+  /* All inputs MUST be 16px+ to prevent iOS zoom */
+  input, textarea, select {
+    font-size: 16px !important;
+    font-family: inherit;
+  }
+
+  /* All interactive elements must have ≥48px touch target */
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -86,9 +104,10 @@ html.dark {
   .page-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100dvh;
     background: var(--bg-base);
-    padding-bottom: 96px;
+    /* Account for bottom nav + safe area */
+    padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
   }
 
   .card {
@@ -121,8 +140,11 @@ html.dark {
     border: none;
     cursor: pointer;
     min-height: 52px;
+    min-width: 44px;
+    touch-action: manipulation;
     transition: all 0.15s ease;
     box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    -webkit-tap-highlight-color: transparent;
   }
 
   .btn-primary:active {
@@ -140,6 +162,8 @@ html.dark {
     border: none;
     cursor: pointer;
     min-height: 52px;
+    min-width: 44px;
+    touch-action: manipulation;
     transition: all 0.15s ease;
   }
 
@@ -153,12 +177,16 @@ html.dark {
     border: 1.5px solid var(--border);
     background: var(--bg-input);
     color: var(--text-primary);
-    padding: 1rem 1rem;
-    font-size: 1rem;
+    padding: 0.875rem 1rem;
+    /* MUST be 16px to prevent iOS auto-zoom on focus */
+    font-size: 16px !important;
     outline: none;
     min-height: 52px;
     transition: all 0.15s ease;
     font-family: inherit;
+    /* Smooth keyboard appearance */
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .input-field::placeholder {
@@ -171,11 +199,13 @@ html.dark {
     background: var(--bg-card);
   }
 
+  /* ── Bottom Navigation ── */
   .floating-dock {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: 50;
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -183,12 +213,19 @@ html.dark {
     box-shadow:
       0 -2px 24px rgba(0, 0, 0, 0.06),
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    /* Critical: safe area for iPhone home indicator */
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    transition: background 0.3s ease;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  /* Hide nav when keyboard is open (keyboard-aware via JS class) */
+  .keyboard-open .floating-dock {
+    transform: translateY(100%);
+    pointer-events: none;
   }
 
   html.dark .floating-dock {
-    background: rgba(13, 17, 23, 0.78);
+    background: rgba(13, 17, 23, 0.88);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
       0 -2px 24px rgba(0, 0, 0, 0.5),
@@ -202,11 +239,18 @@ html.dark {
     display: flex;
     border: 1px solid var(--border);
     transition: background 0.3s ease;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tab-switcher::-webkit-scrollbar {
+    display: none;
   }
 
   .tab-btn {
     flex: 1;
-    padding: 0.5rem 0.75rem;
+    padding: 0.625rem 0.75rem;
     border-radius: 0.75rem;
     font-size: 0.8rem;
     font-weight: 600;
@@ -215,6 +259,8 @@ html.dark {
     color: var(--text-muted);
     cursor: pointer;
     white-space: nowrap;
+    min-height: 44px;
+    touch-action: manipulation;
     transition: all 0.2s ease;
   }
 
@@ -233,12 +279,15 @@ html.dark {
     flex-direction: column;
     align-items: center;
     gap: 0.2rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.875rem;
+    min-height: 48px;
+    min-width: 48px;
     border-radius: 1rem;
     border: none;
     background: transparent;
     cursor: pointer;
     color: var(--text-muted);
+    touch-action: manipulation;
     transition: all 0.2s ease;
   }
 
@@ -261,7 +310,7 @@ html.dark {
   }
 
   .macro-bar-track {
-    height: 6px;
+    height: 7px;
     border-radius: 99px;
     background: var(--track);
     overflow: hidden;
@@ -299,10 +348,20 @@ html.dark {
     -webkit-backdrop-filter: blur(20px);
   }
 
+  /* Larger touch targets for mobile */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .animate-fade-in  { animation: fadeIn 0.35s ease-out both; }
   .animate-slide-up { animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
   .animate-bounce-in{ animation: bounceIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
   .animate-toast-in { animation: toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .animate-pulse-soft { animation: pulseSoft 2s ease-in-out infinite; }
 }
 
 /* ─── Circular progress ───────────────────────────────────────── */
@@ -318,6 +377,79 @@ html.dark {
 /* ─── Tab content ─────────────────────────────────────────────── */
 .tab-content {
   animation: fadeIn 0.2s ease-out;
+}
+
+/* ─── Swipe to delete (food cards) ───────────────────────────── */
+.food-card-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  touch-action: pan-y;
+}
+
+.food-card-delete-bg {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: var(--danger);
+  border-radius: 1rem;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  transition: width 0.2s ease;
+}
+
+/* ─── Search result items ────────────────────────────────────── */
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.search-result-item:active {
+  transform: scale(0.98);
+  background: var(--accent-bg);
+}
+
+/* ─── Gram selector ──────────────────────────────────────────── */
+.gram-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-card2);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.gram-btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 44px;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+}
+
+.gram-btn:active {
+  transform: scale(0.94);
 }
 
 /* ─── Keyframes ───────────────────────────────────────────────── */
@@ -346,9 +478,17 @@ html.dark {
   to   { transform: translateY(0); }
 }
 
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes barFill {
+  from { width: 0%; }
+}
+
 /* ─── Liquid Glass ────────────────────────────────────────────── */
 
-/* Light mode liquid glass */
 .glass-card {
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(28px) saturate(200%);
@@ -361,7 +501,6 @@ html.dark {
     inset 0 -1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Dark mode liquid glass */
 html.dark .glass-card {
   background: rgba(22, 27, 38, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.10);
@@ -371,7 +510,6 @@ html.dark .glass-card {
     inset 0 -1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* Liquid glass nav bar */
 .glass-nav {
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(40px) saturate(180%);
@@ -383,14 +521,13 @@ html.dark .glass-card {
 }
 
 html.dark .glass-nav {
-  background: rgba(13, 17, 23, 0.78);
+  background: rgba(13, 17, 23, 0.88);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 -2px 24px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-/* Liquid glass button */
 .glass-btn {
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(16px);
@@ -400,6 +537,9 @@ html.dark .glass-nav {
     0 4px 12px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border-radius: 1rem;
+  min-height: 48px;
+  min-width: 48px;
+  touch-action: manipulation;
   transition: all 0.18s ease;
 }
 
@@ -413,10 +553,8 @@ html.dark .glass-btn {
 
 .glass-btn:active {
   transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.35);
 }
 
-/* Liquid glass bottom sheet modal */
 .glass-sheet {
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(40px) saturate(200%);
@@ -427,17 +565,18 @@ html.dark .glass-btn {
     0 -8px 48px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
   animation: sheetUp 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  /* Prevent content from going under home indicator */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 html.dark .glass-sheet {
-  background: rgba(20, 25, 37, 0.88);
+  background: rgba(20, 25, 37, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 -8px 48px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-/* Overlay backdrop */
 .sheet-overlay {
   position: fixed;
   inset: 0;
@@ -450,4 +589,40 @@ html.dark .glass-sheet {
 
 html.dark .sheet-overlay {
   background: rgba(0, 0, 0, 0.65);
+}
+
+/* ─── Star / Favorite button ──────────────────────────────────── */
+.star-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+
+.star-btn:active {
+  transform: scale(0.85);
+}
+
+.star-btn.active {
+  color: #fbbf24;
+}
+
+/* ─── Category pill ───────────────────────────────────────────── */
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }

@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, X } from 'lucide-react';
+import React from 'react';
 
 export interface ToastMessage {
     id: number;
     text: string;
-    type?: 'success' | 'error' | 'info';
+    type: 'success' | 'error' | 'info';
 }
 
 interface ToastProps {
@@ -12,44 +11,57 @@ interface ToastProps {
     onDismiss: (id: number) => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
-    return (
-        <div className="fixed bottom-28 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
-            {toasts.map((t) => (
-                <ToastItem key={t.id} toast={t} onDismiss={onDismiss} />
-            ))}
-        </div>
-    );
+const COLORS: Record<ToastMessage['type'], { bg: string; border: string; color: string }> = {
+    success: { bg: 'rgba(34,197,94,0.12)', border: '#22c55e', color: '#22c55e' },
+    error:   { bg: 'rgba(239,68,68,0.12)',  border: '#ef4444', color: '#ef4444' },
+    info:    { bg: 'rgba(99,102,241,0.12)', border: 'var(--accent)', color: 'var(--accent)' },
 };
 
-const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: number) => void }> = ({ toast, onDismiss }) => {
-    useEffect(() => {
-        const timer = setTimeout(() => onDismiss(toast.id), 3000);
-        return () => clearTimeout(timer);
-    }, [toast.id, onDismiss]);
-
-    const bgColor = toast.type === 'error'
-        ? 'bg-red-500'
-        : toast.type === 'info'
-            ? 'bg-blue-500'
-            : 'bg-gray-900 dark:bg-gray-100';
-
-    const textColor = toast.type === 'error' || toast.type === 'info' ? 'text-white' : 'text-white dark:text-gray-900';
+export const Toast: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
+    if (!toasts.length) return null;
 
     return (
-        <div
-            className={`animate-toast-in pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg ${bgColor} ${textColor}`}
-            style={{ background: toast.type === 'error' ? 'var(--danger)' : toast.type === 'info' ? 'var(--water)' : 'var(--text-primary)' }}
-        >
-            <CheckCircle size={18} style={{ color: 'var(--success)', flexShrink: 0 }} />
-            <span className="text-sm font-semibold flex-1" style={{ color: 'var(--bg-base)' }}>{toast.text}</span>
-            <button
-                onClick={() => onDismiss(toast.id)}
-                className="opacity-60 hover:opacity-100 transition-opacity"
-                style={{ color: 'var(--bg-base)' }}
-            >
-                <X size={16} />
-            </button>
+        <div style={{
+            position: 'fixed',
+            bottom: 'calc(90px + env(safe-area-inset-bottom, 0px))',
+            left: 16,
+            right: 16,
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            gap: 8,
+            pointerEvents: 'none',
+        }}>
+            {toasts.map(t => {
+                const c = COLORS[t.type];
+                return (
+                    <div
+                        key={t.id}
+                        className="animate-toast-in"
+                        onClick={() => onDismiss(t.id)}
+                        style={{
+                            background: 'var(--bg-card)',
+                            border: `1.5px solid ${c.border}`,
+                            borderRadius: 16,
+                            padding: '12px 16px',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: 'var(--text-primary)',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+                            pointerEvents: 'all',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                        }}
+                    >
+                        <span style={{ color: c.color, fontSize: 16 }}>
+                            {t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️'}
+                        </span>
+                        {t.text}
+                    </div>
+                );
+            })}
         </div>
     );
 };

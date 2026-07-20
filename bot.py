@@ -18,7 +18,7 @@ load_dotenv("backend/.env")
 # ─── Настройки ───────────────────────────────────────────────
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = "https://cuts-accuracy-raid-prep.trycloudflare.com"   # ← HTTPS обязателен для Telegram
+WEBAPP_URL = "https://distinguished-producers-leaving-brings.trycloudflare.com"   # ← HTTPS обязателен для Telegram
 
 # ─── Bot & Dispatcher ────────────────────────────────────────
 
@@ -38,7 +38,7 @@ async def cmd_start(message: Message) -> None:
 
     await message.answer(
         f"Привет, <b>{message.from_user.first_name}</b>! 👋\n\n"
-        "Я помогу тебе следить за калориями.\n"
+        f"Ссылка: {WEBAPP_URL}\n\n"
         "Нажми кнопку ниже, чтобы открыть трекер:",
         parse_mode="HTML",
         reply_markup=keyboard,

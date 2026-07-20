@@ -1,12 +1,12 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Camera, Send, Sparkles, CheckCircle, AlertCircle, ChevronLeft, Barcode, Search, Mic, MicOff, Plus } from 'lucide-react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { Camera, Sparkles, CheckCircle, AlertCircle, ChevronLeft, Barcode, Search, Mic, MicOff, Plus, Star } from 'lucide-react';
 import { FoodItem } from '../components/FoodCard';
 import { GramCalculatorSheet } from '../components/GramCalculatorSheet';
 import { RecipeCalculator } from './RecipeCalculator';
 import { useTelegram } from '../hooks/useTelegram';
-import { addByText, analyzePhoto, scanBarcode, searchFood, FoodSearchResult, addManual, getRecentFoods, RecentFoodResult } from '../api';
+import { addByText, analyzePhoto, scanBarcode, searchFood, FoodSearchResult, addManual, getRecentFoods, RecentFoodResult, getFavorites, addFavorite, removeFavorite, FavoriteItem } from '../api';
 
-type Tab = 'search' | 'text' | 'photo' | 'barcode' | 'recipe';
+type Tab = 'search' | 'text' | 'photo' | 'barcode' | 'recipe' | 'favorites';
 type AIState = 'idle' | 'uploading' | 'analyzing' | 'done' | 'error';
 
 interface AddFoodProps {
@@ -29,12 +29,53 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
     const [isSearching, setIsSearching] = useState(false);
     const [selectedFood, setSelectedFood] = useState<FoodSearchResult | null>(null);
     const [recentFoods, setRecentFoods] = useState<RecentFoodResult[]>([]);
+    const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+    const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (user?.id) {
             getRecentFoods(user.id).then(setRecentFoods).catch(console.error);
+            getFavorites(user.id).then(favs => {
+                setFavorites(favs);
+                setFavoriteIds(new Set(favs.map(f => f.food_name)));
+            }).catch(console.error);
         }
     }, [user?.id]);
+
+    // Scroll input into view on focus (keyboard avoidance)
+    const handleSearchFocus = () => {
+        setTimeout(() => {
+            searchInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    };
+
+    const handleToggleFavorite = useCallback(async (food: FoodSearchResult | RecentFoodResult, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user?.id) return;
+        tapImpact();
+        const fname = (food as any).food_name;
+        if (favoriteIds.has(fname)) {
+            const fav = favorites.find(f => f.food_name === fname);
+            if (fav) {
+                await removeFavorite(fav.id, user.id).catch(console.error);
+                setFavoriteIds(prev => { const s = new Set(prev); s.delete(fname); return s; });
+                setFavorites(prev => prev.filter(f => f.food_name !== fname));
+            }
+        } else {
+            const res = await addFavorite(user.id, {
+                food_name: fname,
+                calories: food.calories,
+                protein: food.protein || 0,
+                carbs: food.carbs || 0,
+                fat: food.fat || 0,
+            }).catch(console.error);
+            if (res) {
+                setFavoriteIds(prev => new Set([...prev, fname]));
+                setFavorites(prev => [...prev, { id: res.favorite_id, food_name: fname, calories: food.calories, protein: food.protein || 0, carbs: food.carbs || 0, fat: food.fat || 0, emoji: '🍽️' }]);
+            }
+        }
+    }, [user?.id, favorites, favoriteIds, tapImpact]);
 
     useEffect(() => {
         const timer = setTimeout(async () => {
@@ -70,7 +111,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
 
     const toggleListening = () => {
         if (!('webkitSpeechRecognition' in window)) {
-            alert('Голосовой ввод не поддерживается в этом браузере.');
+            console.warn('Speech recognition not supported');
             return;
         }
         
@@ -162,14 +203,15 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
         setAiState('analyzing');
         try {
             const res = await scanBarcode(barcodeStr.trim());
+            // scanBarcode returns FoodSearchResult
             const realResult: Partial<FoodItem> = {
-                id: res.log_id.toString(),
-                name: res.food,
+                id: Date.now().toString(),
+                name: res.food_name,
                 calories: res.calories,
                 protein: res.protein || undefined,
                 carbs: res.carbs || undefined,
                 fat: res.fat || undefined,
-                emoji: res.emoji || '🍽️',
+                emoji: '🍽️',
             };
             setAiResult(realResult);
             setAiState('done');
@@ -284,31 +326,66 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
             {/* Tab Switcher */}
             <div className="mx-5 mb-5 overflow-x-auto pb-1">
                 <div className="tab-switcher" style={{ gap: '0.25rem' }}>
-                    {(['search', 'text', 'photo', 'barcode'] as Tab[]).map((tab) => (
+                    {([['search','🔍 Поиск'],['favorites','⭐ Избранное'],['text','🤖 ИИ'],['photo','📷 Фото'],['barcode','📊 Код']] as [Tab,string][]).map(([tab, label]) => (
                         <button
                             key={tab}
                             onClick={() => { tapImpact(); setActiveTab(tab); setAiState('idle'); }}
                             className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                         >
-                            {tab === 'search' ? '🔍 Поиск' : tab === 'text' ? '🤖 ИИ-Ввод' : tab === 'photo' ? '📷 Фото' : '📊 Штрихкод'}
+                            {label}
                         </button>
                     ))}
                 </div>
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'search' ? (
+            {activeTab === 'favorites' ? (
+                <div className="px-5 tab-content animate-fade-in">
+                    {favorites.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12" style={{ opacity: 0.5 }}>
+                            <Star size={48} className="mb-3" style={{ color: 'var(--text-muted)' }} />
+                            <p className="text-center text-sm" style={{ color: 'var(--text-muted)' }}>Нет избранных продуктов.<br/>Нажми ⭐ рядом с продуктом</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2 pb-8">
+                            {favorites.map((fav, i) => (
+                                <button
+                                    key={fav.id}
+                                    onClick={() => { tapImpact(); setSelectedFood({ food_name: fav.food_name, calories: fav.calories, protein: fav.protein, carbs: fav.carbs, fat: fav.fat, brand: '', image_url: '' }); }}
+                                    className="glass-card w-full p-3 flex items-center justify-between gap-3 active:scale-[0.98] transition-all text-left"
+                                >
+                                    <span className="text-2xl">{fav.emoji || '🍽️'}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{fav.food_name}</p>
+                                        <div className="flex items-center gap-2 mt-1 text-xs">
+                                            <span className="font-bold" style={{ color: 'var(--accent)' }}>{fav.calories} ккал/100г</span>
+                                            {fav.protein > 0 && <span style={{ color: '#60a5fa' }}>Б:{fav.protein}</span>}
+                                            {fav.fat > 0 && <span style={{ color: '#f87171' }}>Ж:{fav.fat}</span>}
+                                            {fav.carbs > 0 && <span style={{ color: '#fbbf24' }}>У:{fav.carbs}</span>}
+                                        </div>
+                                    </div>
+                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
+                                        <CheckCircle size={18} />
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : activeTab === 'search' ? (
                 <div className="px-5 tab-content animate-fade-in">
                     <div className="relative mb-4">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search size={18} className="text-gray-400" />
                         </div>
                         <input
+                            ref={searchInputRef}
                             type="text"
                             className="input-field pl-10 w-full"
                             placeholder="Найти продукт в базе (от 3 букв)..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={handleSearchFocus}
                         />
                         {isSearching && (
                             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -329,27 +406,39 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
                     <div className="space-y-2 pb-8">
                         {searchResults.length > 0 ? (
                             searchResults.map((res, i) => (
-                                <button
+                                <div
                                     key={i}
-                                    onClick={() => { tapImpact(); setSelectedFood(res); }}
-                                    className="glass-card w-full p-3 flex items-center justify-between gap-3 active:scale-[0.98] transition-all text-left"
+                                    className="glass-card flex items-center gap-3 active:scale-[0.98] transition-all"
+                                    style={{ padding: '10px 12px' }}
                                 >
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{res.food_name}</p>
-                                        <div className="flex items-center gap-2 mt-1 text-xs">
+                                    <button
+                                        onClick={() => { tapImpact(); setSelectedFood(res); }}
+                                        style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer', minWidth: 0 }}
+                                    >
+                                        <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)', marginBottom: 2 }}>{res.food_name}</p>
+                                        {res.brand && <p style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 2 }}>{res.brand}</p>}
+                                        <div className="flex items-center gap-2 text-xs">
                                             <span className="font-bold" style={{ color: 'var(--accent)' }}>{res.calories} ккал/100г</span>
                                             {res.protein > 0 && <span style={{ color: '#60a5fa' }}>Б:{res.protein}</span>}
                                             {res.fat > 0 && <span style={{ color: '#f87171' }}>Ж:{res.fat}</span>}
                                             {res.carbs > 0 && <span style={{ color: '#fbbf24' }}>У:{res.carbs}</span>}
                                         </div>
-                                    </div>
-                                    <div
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleToggleFavorite(res, e)}
+                                        className="star-btn"
+                                        style={{ color: favoriteIds.has(res.food_name) ? '#fbbf24' : 'var(--text-muted)' }}
+                                    >
+                                        <Star size={18} fill={favoriteIds.has(res.food_name) ? '#fbbf24' : 'none'} />
+                                    </button>
+                                    <button
+                                        onClick={() => { tapImpact(); setSelectedFood(res); }}
                                         className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                                        style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
+                                        style={{ background: 'var(--accent-bg)', color: 'var(--accent)', border: 'none', cursor: 'pointer' }}
                                     >
                                         <CheckCircle size={18} />
-                                    </div>
-                                </button>
+                                    </button>
+                                </div>
                             ))
                         ) : searchQuery.length > 2 && !isSearching ? (
                             <p className="text-center text-sm py-4" style={{ color: 'var(--text-muted)' }}>Ничего не найдено</p>

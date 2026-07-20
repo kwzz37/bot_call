@@ -14,7 +14,15 @@ export function useTelegram() {
         }
     }, []);
 
-    const user = tg?.initDataUnsafe?.user;
+    // If running outside Telegram or if user ID is missing, mock the user for testing
+    const mockUser = {
+        id: 999999,
+        first_name: 'Тестовый',
+        last_name: 'Пользователь',
+        username: 'test_user'
+    };
+    const tgUser = tg?.initDataUnsafe?.user;
+    const user = (tgUser && tgUser.id) ? tgUser : mockUser;
     const haptic = tg?.HapticFeedback;
 
     const tapImpact = () => {

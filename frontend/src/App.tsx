@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Dashboard, INITIAL_FOODS } from './screens/Dashboard';
 import { AddFood } from './screens/AddFood';
 import { Profile } from './screens/Profile';
 import { ProgressScreen } from './screens/ProgressScreen';
+import { OnboardingScreen } from './screens/OnboardingScreen';
 import { BottomNav } from './components/BottomNav';
 import { Toast, ToastMessage } from './components/Toast';
 import { FoodItem } from './components/FoodCard';
@@ -17,9 +18,13 @@ interface UserGoals {
     proteinGoal: number;
     carbsGoal: number;
     fatGoal: number;
+    waterGoal: number;
     weight: number;
     height: number;
     age: number;
+    gender: string;
+    goalType: string;
+    activityLevel: string;
 }
 
 function AppInner() {
@@ -28,39 +33,110 @@ function AppInner() {
     const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS);
     const [goals, setGoals] = useState<UserGoals>({
         calorieGoal: 2000,
-        proteinGoal: 150,
-        carbsGoal: 250,
-        fatGoal: 65,
+        proteinGoal: 120,
+        carbsGoal: 200,
+        fatGoal: 55,
+        waterGoal: 2000,
         weight: 70,
         height: 175,
         age: 25,
+        gender: 'male',
+        goalType: 'maintain',
+        activityLevel: 'light',
     });
     const [waterMl, setWaterMl] = useState(0);
     const [streak, setStreak] = useState(0);
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
-    
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const [appReady, setAppReady] = useState(false);
+
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedMealType, setSelectedMealType] = useState<string>('any');
 
-    const pushToast = (text: string, type: ToastMessage['type'] = 'success') => {
+    // ── Keyboard-aware bottom nav ──────────────────────────────
+    useEffect(() => {
+        if (!window.visualViewport) return;
+
+        const handleResize = () => {
+            const viewport = window.visualViewport!;
+            const windowHeight = window.innerHeight;
+            const viewportHeight = viewport.height;
+            // If visible viewport is significantly smaller than window → keyboard is open
+            const keyboardOpen = windowHeight - viewportHeight > 150;
+            document.documentElement.classList.toggle('keyboard-open', keyboardOpen);
+        };
+
+        window.visualViewport.addEventListener('resize', handleResize);
+        window.visualViewport.addEventListener('scroll', handleResize);
+
+        return () => {
+            window.visualViewport?.removeEventListener('resize', handleResize);
+            window.visualViewport?.removeEventListener('scroll', handleResize);
+        };
+    }, []);
+
+    // ── Toast helpers ──────────────────────────────────────────
+    const pushToast = useCallback((text: string, type: ToastMessage['type'] = 'success') => {
         const id = Date.now();
         setToasts(prev => [...prev, { id, text, type }]);
-    };
+        // Auto-dismiss after 3s
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+    }, []);
 
-    const dismissToast = (id: number) => {
+    const dismissToast = useCallback((id: number) => {
         setToasts(prev => prev.filter(t => t.id !== id));
-    };
+    }, []);
 
+    // ── Init user & load stats ─────────────────────────────────
     useEffect(() => {
         if (!user) return;
+
         initUser({
             user_id: user.id,
             first_name: user.first_name,
             username: user.username,
         })
-            .then(() => getStats(user.id, selectedDate))
+            .then((profile) => {
+                // Trigger onboarding if setup is incomplete OR parameters are missing
+                const setupDone = (profile.setup_complete === 1) && 
+                                  (profile.weight && profile.weight > 0) &&
+                                  (profile.height && profile.height > 0);
+
+                if (!setupDone) {
+                    localStorage.removeItem('onboarding_done');
+                    setShowOnboarding(true);
+                    setAppReady(true);
+                    return;
+                }
+
+                // Load goals from profile
+                setGoals(g => ({
+                    ...g,
+                    calorieGoal: profile.calorie_goal ?? g.calorieGoal,
+                    proteinGoal: profile.protein_goal ?? g.proteinGoal,
+                    carbsGoal: profile.carbs_goal ?? g.carbsGoal,
+                    fatGoal: profile.fat_goal ?? g.fatGoal,
+                    waterGoal: profile.water_goal ?? g.waterGoal,
+                    weight: profile.weight ?? g.weight,
+                    height: profile.height ?? g.height,
+                    age: profile.age ?? g.age,
+                    gender: profile.gender ?? g.gender,
+                    goalType: profile.goal_type ?? g.goalType,
+                    activityLevel: profile.activity_level ?? g.activityLevel,
+                }));
+
+                return getStats(user.id, selectedDate);
+            })
             .then((stats) => {
-                setGoals(g => ({ ...g, calorieGoal: stats.calorie_goal }));
+                if (!stats) return;
+                setGoals(g => ({
+                    ...g,
+                    calorieGoal: stats.calorie_goal ?? g.calorieGoal,
+                    proteinGoal: stats.protein_goal ?? g.proteinGoal,
+                    carbsGoal: stats.carbs_goal ?? g.carbsGoal,
+                    fatGoal: stats.fat_goal ?? g.fatGoal,
+                    waterGoal: stats.water_goal ?? g.waterGoal,
+                }));
                 setWaterMl(stats.water_ml ?? 0);
                 setStreak(stats.streak ?? 0);
                 const mapped: FoodItem[] = stats.entries.map((e) => ({
@@ -75,15 +151,62 @@ function AppInner() {
                     meal_type: e.meal_type,
                 }));
                 setFoods(mapped);
+                setAppReady(true);
             })
             .catch((err) => {
                 console.warn('Backend not reachable, running in offline mode:', err);
+                const localDone = localStorage.getItem('onboarding_done') === '1';
+                if (!localDone) {
+                    setShowOnboarding(true);
+                }
+                setAppReady(true);
             });
     }, [user?.id, selectedDate]);
 
+    // ── Onboarding complete ────────────────────────────────────
+    const handleOnboardingComplete = (newGoals: {
+        calorieGoal: number;
+        proteinGoal: number;
+        carbsGoal: number;
+        fatGoal: number;
+        waterGoal: number;
+        weight: number;
+        height: number;
+        age: number;
+        gender: string;
+        goalType: string;
+        activityLevel: string;
+    }) => {
+        setGoals(newGoals);
+        localStorage.setItem('onboarding_done', '1');
+        setShowOnboarding(false);
+
+        // Load stats after onboarding
+        if (user?.id) {
+            getStats(user.id, selectedDate)
+                .then((stats) => {
+                    setWaterMl(stats.water_ml ?? 0);
+                    setStreak(stats.streak ?? 0);
+                    const mapped: FoodItem[] = stats.entries.map((e) => ({
+                        id: String(e.id),
+                        name: e.food_name,
+                        calories: e.calories,
+                        protein: e.protein ?? undefined,
+                        carbs: e.carbs ?? undefined,
+                        fat: e.fat ?? undefined,
+                        emoji: e.emoji ?? undefined,
+                        time: e.logged_at.slice(11, 16),
+                        meal_type: e.meal_type,
+                    }));
+                    setFoods(mapped);
+                })
+                .catch(console.error);
+        }
+    };
+
     const handleAddFood = (item: FoodItem) => {
         setFoods((prev) => [item, ...prev]);
-        pushToast(`✅ Добавлено: ${item.name} — ${item.calories} ккал`);
+        pushToast(`✅ ${item.name} — ${item.calories} ккал`);
         setActiveScreen('dashboard');
     };
 
@@ -91,8 +214,51 @@ function AppInner() {
         setFoods((prev) => prev.filter((f) => f.id !== id));
     };
 
+    // ── Loading state ──────────────────────────────────────────
+    if (!appReady) {
+        return (
+            <div style={{
+                minHeight: '100dvh',
+                background: 'var(--bg-base)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                gap: 16,
+            }}>
+                <div style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 18,
+                    background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 28,
+                    boxShadow: '0 8px 24px rgba(99,102,241,0.35)',
+                    animation: 'pulseSoft 1.5s ease-in-out infinite',
+                }}>
+                    🥗
+                </div>
+                <p style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 600 }}>
+                    Загружаем данные...
+                </p>
+            </div>
+        );
+    }
+
+    // ── Onboarding ─────────────────────────────────────────────
+    if (showOnboarding && user?.id) {
+        return (
+            <OnboardingScreen
+                userId={user.id}
+                onComplete={handleOnboardingComplete}
+            />
+        );
+    }
+
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>
+        <div style={{ minHeight: '100dvh', background: 'var(--bg-base)' }}>
             <div key={activeScreen} className="animate-fade-in">
                 {activeScreen === 'dashboard' && (
                     <Dashboard
@@ -101,6 +267,7 @@ function AppInner() {
                         calorieGoal={goals.calorieGoal}
                         waterMl={waterMl}
                         setWaterMl={setWaterMl}
+                        waterGoal={goals.waterGoal}
                         streak={streak}
                         proteinGoal={goals.proteinGoal}
                         carbsGoal={goals.carbsGoal}
@@ -130,6 +297,7 @@ function AppInner() {
                     <Profile
                         goals={goals}
                         onGoalsChange={(g) => setGoals(prev => ({ ...prev, ...g }))}
+                        onResetOnboarding={() => setShowOnboarding(true)}
                     />
                 )}
             </div>
