@@ -16,6 +16,8 @@ build/
 .env
 *.env
 *.log
+*.db
+backend/calorie_tracker.db
 
 # Node.js
 node_modules/
