@@ -9,7 +9,7 @@ import { Toast, ToastMessage } from './components/Toast';
 import { FoodItem } from './components/FoodCard';
 import { useTelegram } from './hooks/useTelegram';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { initUser, getStats } from './api';
+import { initUser, getStats, completeOnboarding } from './api';
 
 type Screen = 'dashboard' | 'progress' | 'add' | 'profile';
 
@@ -97,33 +97,75 @@ function AppInner() {
             username: user.username,
         })
             .then((profile) => {
-                // Trigger onboarding if setup is incomplete OR parameters are missing
                 const setupDone = (profile.setup_complete === 1) && 
                                   (profile.weight && profile.weight > 0) &&
                                   (profile.height && profile.height > 0);
 
                 if (!setupDone) {
-                    localStorage.removeItem('onboarding_done');
+                    const savedProfileStr = localStorage.getItem('saved_user_profile');
+                    if (savedProfileStr) {
+                        try {
+                            const saved = JSON.parse(savedProfileStr);
+                            const restoredGoals = {
+                                calorieGoal: saved.calorieGoal || saved.calorie_goal || 2000,
+                                proteinGoal: saved.proteinGoal || saved.protein_goal || 150,
+                                carbsGoal: saved.carbsGoal || saved.carbs_goal || 200,
+                                fatGoal: saved.fatGoal || saved.fat_goal || 65,
+                                waterGoal: saved.waterGoal || saved.water_goal || 2000,
+                                weight: saved.weight || 70,
+                                height: saved.height || 175,
+                                age: saved.age || 25,
+                                gender: saved.gender || 'male',
+                                goalType: saved.goalType || saved.goal_type || 'maintain',
+                                activityLevel: saved.activityLevel || saved.activity_level || 'moderate',
+                            };
+
+                            setGoals(restoredGoals);
+                            setShowOnboarding(false);
+
+                            // Restore user profile to server DB in background
+                            completeOnboarding({
+                                user_id: user.id,
+                                weight: restoredGoals.weight,
+                                height: restoredGoals.height,
+                                age: restoredGoals.age,
+                                gender: restoredGoals.gender,
+                                goal_type: restoredGoals.goalType,
+                                activity_level: restoredGoals.activityLevel,
+                                calorie_goal: restoredGoals.calorieGoal,
+                                protein_goal: restoredGoals.proteinGoal,
+                                carbs_goal: restoredGoals.carbsGoal,
+                                fat_goal: restoredGoals.fatGoal,
+                            }).catch(console.error);
+
+                            return getStats(user.id, selectedDate);
+                        } catch (e) {
+                            console.error('Failed to parse saved user profile:', e);
+                        }
+                    }
+
                     setShowOnboarding(true);
                     setAppReady(true);
                     return;
                 }
 
-                // Load goals from profile
-                setGoals(g => ({
-                    ...g,
-                    calorieGoal: profile.calorie_goal ?? g.calorieGoal,
-                    proteinGoal: profile.protein_goal ?? g.proteinGoal,
-                    carbsGoal: profile.carbs_goal ?? g.carbsGoal,
-                    fatGoal: profile.fat_goal ?? g.fatGoal,
-                    waterGoal: profile.water_goal ?? g.waterGoal,
-                    weight: profile.weight ?? g.weight,
-                    height: profile.height ?? g.height,
-                    age: profile.age ?? g.age,
-                    gender: profile.gender ?? g.gender,
-                    goalType: profile.goal_type ?? g.goalType,
-                    activityLevel: profile.activity_level ?? g.activityLevel,
-                }));
+                // Load goals from profile & cache locally
+                const activeGoals = {
+                    calorieGoal: profile.calorie_goal ?? 2000,
+                    proteinGoal: profile.protein_goal ?? 150,
+                    carbsGoal: profile.carbs_goal ?? 200,
+                    fatGoal: profile.fat_goal ?? 65,
+                    waterGoal: profile.water_goal ?? 2000,
+                    weight: profile.weight ?? 70,
+                    height: profile.height ?? 175,
+                    age: profile.age ?? 25,
+                    gender: profile.gender ?? 'male',
+                    goalType: profile.goal_type ?? 'maintain',
+                    activityLevel: profile.activity_level ?? 'moderate',
+                };
+                setGoals(activeGoals);
+                localStorage.setItem('saved_user_profile', JSON.stringify(activeGoals));
+                localStorage.setItem('onboarding_done', '1');
 
                 return getStats(user.id, selectedDate);
             })
@@ -179,6 +221,7 @@ function AppInner() {
     }) => {
         setGoals(newGoals);
         localStorage.setItem('onboarding_done', '1');
+        localStorage.setItem('saved_user_profile', JSON.stringify(newGoals));
         setShowOnboarding(false);
 
         // Load stats after onboarding
@@ -292,12 +335,21 @@ function AppInner() {
                         selectedMealType={selectedMealType}
                         setSelectedMealType={setSelectedMealType}
                     />
-                )}
                 {activeScreen === 'profile' && (
                     <Profile
                         goals={goals}
-                        onGoalsChange={(g) => setGoals(prev => ({ ...prev, ...g }))}
-                        onResetOnboarding={() => setShowOnboarding(true)}
+                        onGoalsChange={(g) => {
+                            setGoals(prev => {
+                                const updated = { ...prev, ...g };
+                                localStorage.setItem('saved_user_profile', JSON.stringify(updated));
+                                return updated;
+                            });
+                        }}
+                        onResetOnboarding={() => {
+                            localStorage.removeItem('saved_user_profile');
+                            localStorage.removeItem('onboarding_done');
+                            setShowOnboarding(true);
+                        }}
                     />
                 )}
             </div>
