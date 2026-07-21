@@ -9,7 +9,7 @@ import { Toast, ToastMessage } from './components/Toast';
 import { FoodItem } from './components/FoodCard';
 import { useTelegram } from './hooks/useTelegram';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { initUser, getStats, completeOnboarding } from './api';
+import { initUser, getStats, completeOnboarding, addManual, deleteFood, addWater as apiAddWater } from './api';
 
 type Screen = 'dashboard' | 'progress' | 'add' | 'profile';
 
@@ -175,9 +175,11 @@ function AppInner() {
                     fatGoal: stats.fat_goal ?? g.fatGoal,
                     waterGoal: stats.water_goal ?? g.waterGoal,
                 }));
-                setWaterMl(stats.water_ml ?? 0);
-                setStreak(stats.streak ?? 0);
-                const mapped: FoodItem[] = stats.entries.map((e) => ({
+
+                const storageKey = `saved_day_foods_${user.id}_${selectedDate}`;
+                const savedWaterKey = `saved_day_water_${user.id}_${selectedDate}`;
+
+                const serverFoods: FoodItem[] = stats.entries.map((e) => ({
                     id: String(e.id),
                     name: e.food_name,
                     calories: e.calories,
@@ -188,11 +190,66 @@ function AppInner() {
                     time: e.logged_at.slice(11, 16),
                     meal_type: e.meal_type,
                 }));
-                setFoods(mapped);
+
+                if (serverFoods.length > 0) {
+                    setFoods(serverFoods);
+                    localStorage.setItem(storageKey, JSON.stringify(serverFoods));
+                } else {
+                    const localStr = localStorage.getItem(storageKey);
+                    if (localStr) {
+                        try {
+                            const localFoods: FoodItem[] = JSON.parse(localStr);
+                            if (localFoods.length > 0) {
+                                setFoods(localFoods);
+                                // Re-sync local foods to server in background if server DB was reset
+                                localFoods.forEach(f => {
+                                    addManual(user.id, {
+                                        food_name: f.name,
+                                        calories: f.calories,
+                                        protein: f.protein || 0,
+                                        carbs: f.carbs || 0,
+                                        fat: f.fat || 0,
+                                    }, f.meal_type || 'any', selectedDate).catch(console.error);
+                                });
+                            } else {
+                                setFoods([]);
+                            }
+                        } catch (e) {
+                            setFoods([]);
+                        }
+                    } else {
+                        setFoods([]);
+                    }
+                }
+
+                if (stats.water_ml > 0) {
+                    setWaterMl(stats.water_ml);
+                    localStorage.setItem(savedWaterKey, String(stats.water_ml));
+                } else {
+                    const localWater = localStorage.getItem(savedWaterKey);
+                    if (localWater && Number(localWater) > 0) {
+                        const w = Number(localWater);
+                        setWaterMl(w);
+                        apiAddWater(user.id, w, selectedDate).catch(console.error);
+                    } else {
+                        setWaterMl(0);
+                    }
+                }
+
+                setStreak(stats.streak ?? 0);
                 setAppReady(true);
             })
             .catch((err) => {
                 console.warn('Backend not reachable, running in offline mode:', err);
+                const storageKey = `saved_day_foods_${user.id}_${selectedDate}`;
+                const savedWaterKey = `saved_day_water_${user.id}_${selectedDate}`;
+                const localStr = localStorage.getItem(storageKey);
+                if (localStr) {
+                    try { setFoods(JSON.parse(localStr)); } catch (e) {}
+                }
+                const localWater = localStorage.getItem(savedWaterKey);
+                if (localWater) { setWaterMl(Number(localWater) || 0); }
+
                 const localDone = localStorage.getItem('onboarding_done') === '1';
                 if (!localDone) {
                     setShowOnboarding(true);
@@ -202,55 +259,47 @@ function AppInner() {
     }, [user?.id, selectedDate]);
 
     // ── Onboarding complete ────────────────────────────────────
-    const handleOnboardingComplete = (newGoals: {
-        calorieGoal: number;
-        proteinGoal: number;
-        carbsGoal: number;
-        fatGoal: number;
-        waterGoal: number;
-        weight: number;
-        height: number;
-        age: number;
-        gender: string;
-        goalType: string;
-        activityLevel: string;
-    }) => {
+    const handleOnboardingComplete = (newGoals: UserGoals) => {
         setGoals(newGoals);
         localStorage.setItem('onboarding_done', '1');
         localStorage.setItem('saved_user_profile', JSON.stringify(newGoals));
         setShowOnboarding(false);
 
-        // Load stats after onboarding
         if (user?.id) {
             getStats(user.id, selectedDate)
                 .then((stats) => {
                     setWaterMl(stats.water_ml ?? 0);
                     setStreak(stats.streak ?? 0);
-                    const mapped: FoodItem[] = stats.entries.map((e) => ({
-                        id: String(e.id),
-                        name: e.food_name,
-                        calories: e.calories,
-                        protein: e.protein ?? undefined,
-                        carbs: e.carbs ?? undefined,
-                        fat: e.fat ?? undefined,
-                        emoji: e.emoji ?? undefined,
-                        time: e.logged_at.slice(11, 16),
-                        meal_type: e.meal_type,
-                    }));
-                    setFoods(mapped);
                 })
                 .catch(console.error);
         }
     };
 
     const handleAddFood = (item: FoodItem) => {
-        setFoods((prev) => [item, ...prev]);
+        setFoods((prev) => {
+            const next = [item, ...prev];
+            if (user?.id) {
+                const storageKey = `saved_day_foods_${user.id}_${selectedDate}`;
+                localStorage.setItem(storageKey, JSON.stringify(next));
+            }
+            return next;
+        });
         pushToast(`✅ ${item.name} — ${item.calories} ккал`);
         setActiveScreen('dashboard');
     };
 
     const handleDeleteFood = (id: string) => {
-        setFoods((prev) => prev.filter((f) => f.id !== id));
+        setFoods((prev) => {
+            const next = prev.filter((f) => f.id !== id);
+            if (user?.id) {
+                const storageKey = `saved_day_foods_${user.id}_${selectedDate}`;
+                localStorage.setItem(storageKey, JSON.stringify(next));
+            }
+            return next;
+        });
+        if (user?.id) {
+            deleteFood(Number(id), user.id).catch(console.error);
+        }
     };
 
     // ── Loading state ──────────────────────────────────────────

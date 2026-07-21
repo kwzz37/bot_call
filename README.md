@@ -2,11 +2,14 @@
 
 # 🥗 Calorie Tracker — Telegram Mini App
 
-**Считай калории прямо в Telegram — текстом или фотографией блюда**
+**Умный трекер калорий и БЖУ прямо в Telegram с ИИ-распознаванием, нечетким поиском и локальной базой продуктов.**
 
+[![Live WebApp](https://img.shields.io/badge/Live_WebApp-GitHub_Pages-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://kwzz37.github.io/bot_call/)
+[![Live API](https://img.shields.io/badge/Live_API-Render.com-46e3b7?style=for-the-badge&logo=render&logoColor=white)](https://bot-call-wftl.onrender.com/docs)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Gemini](https://img.shields.io/badge/Gemini_AI-2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 [![Telegram](https://img.shields.io/badge/Telegram_Mini_App-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots/webapps)
 
@@ -14,144 +17,111 @@
 
 ---
 
-## 📱 Что это?
+## 🌟 Ключевые фичи проекта
 
-Telegram Mini App, которое позволяет отслеживать калории и макросы (белки, жиры, углеводы) прямо внутри Telegram:
-
-- **Текстом** — напишите «тарелка борща» или «гречка 200г», ИИ сам посчитает
-- **Фото** — сфотографируйте блюдо, ИИ распознает его и оценит питательность
-- **Статистика** — дневной дашборд с прогрессом по калориям и БЖУ
-- **Профиль** — настройте цели: вес, рост, возраст, дневная норма калорий
+- 🔍 **Умный нечеткий поиск (Fuzzy Search)** — работает на алгоритмах `rapidfuzz` (`WRatio`). Находит продукты даже с 2-3 опечатками, автоматически исправляет случайную раскладку клавиатуры (например, `ghbdtn` ➔ `привет`) и нормализует буквы `е/ё`.
+- 🇧🇾 **Расширенная база продуктов (1,675+ позиций)** — в базу включены популярные региональные бренды Беларуси (например, предприятия **Домочай**, хлебобулочные изделия, молочка, готовые блюда).
+- 🤖 **ИИ-распознавание блюд (Google Gemini 2.5 Flash)**:
+  - **По тексту**: напишите «тарелка борща и 200г гречки», ИИ моментально рассчитает калории, белки, жиры и углеводы.
+  - **По фото**: сфотографируйте тарелку с едой — нейросеть распознает блюда и вернет детальный состав.
+  - **По штрихкоду**: сканируйте штрихкод товара.
+- 📐 **Расчет индивидуальных норм (КБЖУ и Воды)** — удобный Onboarding калькулятор формул Харриса-Бенедикта / Маффина-Джеора в зависимости от веса, роста, возраста, пола, уровня активности и цели (похудение, поддержание, набор).
+- 🍳 **Категоризация по приемам пищи** — распределение блюд по категориям: **Завтрак 🍳, Обед 🍽️, Ужин 🌙, Перекус 🍎, Разное 🥗** с возможностью удаления любой позиции в 1 клик (или свайпом).
+- 🛡️ **Двойная оффлайн-устойчивость (Zero Data Loss)** — профиль пользователя, цели, дневные логи еды и выпитой воды дублируются в `localStorage` устройства. Даже при перезапуске бесплатных серверов данные автоматически синхронизируются с бэкендом без потери.
+- 🎨 **Glassmorphism UI & Нативная интеграция** — современный дизайн под iOS/Telegram (светлая и тёмная темы, Haptic Feedback при касаниях, корректные отступы под домашний индикатор).
 
 ---
 
-## 🏗️ Архитектура
+## 🏗️ Архитектура проекта
 
-```
+```text
 bot_call/
-├── bot.py              # Telegram-бот на aiogram 3 (отправляет Mini App)
+├── bot.py                  # Telegram-бот на aiogram 3 (выдает кнопку Mini App)
+├── start.sh                # Единый скрипт запуска FastAPI + Bot для Cloud (Render)
 ├── backend/
-│   ├── main.py         # FastAPI REST API
-│   ├── database.py     # SQLite (пользователи + логи еды)
-│   ├── ai.py           # Gemini 2.5 Flash — анализ текста и фото
-│   ├── requirements.txt
-│   └── .env.example
-└── frontend/
-    ├── src/
-    │   ├── screens/    # Dashboard, AddFood, Profile
-    │   ├── components/ # BottomNav, FoodCard, CircularProgress
-    │   ├── hooks/      # useTelegram
-    │   └── api.ts      # HTTP-клиент к бэкенду
-    └── vite.config.ts
+│   ├── main.py             # FastAPI REST API (Search, AI, Stats, CRUD)
+│   ├── database.py         # SQLite база данных (Users, FoodLogs, WaterLogs)
+│   ├── generate_db.py     # Парсер и генератор базы продуктов
+│   ├── local_db.json       # База из 1,675+ продуктов (включая белорусские бренды)
+│   ├── schemas.py          # Pydantic модели запросов/ответов
+│   └── requirements.txt    # Зависимости Python
+├── frontend/               # React 18 + TypeScript + Vite + Tailwind CSS
+│   ├── src/
+│   │   ├── screens/        # Dashboard, AddFood, Profile, ProgressScreen, Onboarding
+│   │   ├── components/     # BottomNav, FoodCard, GramCalculatorSheet, CircularProgress
+│   │   ├── hooks/          # useTelegram (интеграция с Telegram WebApp API)
+│   │   └── api.ts          # HTTP клиент
+│   └── vite.config.ts      # Конфигурация Vite с билдом в /docs
+└── docs/                   # Скомпилированный продакшн-фронтенд для GitHub Pages
 ```
 
 ---
 
-## ⚡ Быстрый старт
+## 🛠️ Стек технологий
+
+### Backend & AI
+- **Python 3.11+**
+- **FastAPI** — высокопроизводительный асинхронный веб-фреймворк
+- **Aiogram 3** — асинхронная библиотека для работы с Telegram Bot API
+- **Google GenAI SDK** (`gemini-2.5-flash`) — анализ фото и свободного текста
+- **RapidFuzz** — C++ оптимизированный нечеткий поиск строк
+- **SQLite** — встроенная реляционная БД
+
+### Frontend
+- **React 18** + **TypeScript**
+- **Vite** — сверхбыстрый сборщик
+- **Tailwind CSS** + Custom Vanilla CSS Variables (Glassmorphism design system)
+- **Lucide React** — иконки
+- **Telegram WebApp SDK** — HapticFeedback, ColorScheme, Swipes handling
+
+---
+
+## ⚡ Быстрый старт (Локальный запуск)
 
 ### 1. Клонировать репозиторий
-
 ```bash
 git clone https://github.com/kwzz37/bot_call.git
 cd bot_call
 ```
 
-### 2. Настроить бэкенд
-
+### 2. Запустить Бэкенд
 ```bash
 cd backend
-cp .env.example .env
-```
-
-Открыть `.env` и вставить ключ Gemini API:
-
-```env
-GEMINI_API_KEY=ваш_ключ_здесь
-GEMINI_MODEL=gemini-2.5-flash-lite
-```
-
-> 🔑 Получить ключ: [aistudio.google.com](https://aistudio.google.com/app/apikey)
-
-Установить зависимости и запустить:
-
-```bash
 pip install -r requirements.txt
+```
+
+Создайте файл `.env` в папке `backend/` со следующими переменными:
+```env
+BOT_TOKEN=ваш_токен_бота_от_BotFather
+GEMINI_API_KEY=ваш_ключ_gemini_api
+```
+
+Запустите FastAPI сервер:
+```bash
 uvicorn main:app --reload --port 8000
 ```
+API будет доступно по адресу: `http://localhost:8000` (Документация Swagger: `http://localhost:8000/docs`)
 
-API будет доступен на `http://localhost:8000` · Docs: `http://localhost:8000/docs`
-
-### 3. Запустить фронтенд
-
+### 3. Запустить Фронтенд
 ```bash
 cd ../frontend
 npm install
 npm run dev
 ```
-
-Фронтенд запустится на `http://localhost:5173`
-
-### 4. Настроить туннель (для Telegram)
-
-Telegram Mini Apps требуют **HTTPS**. Используйте ngrok:
-
-```bash
-ngrok http 5173
-```
-
-Скопируйте URL вида `https://xxxx.ngrok-free.app` и вставьте его в `bot.py`:
-
-```python
-WEBAPP_URL = "https://xxxx.ngrok-free.app"
-```
-
-### 5. Запустить бота
-
-```bash
-cd ..
-pip install aiogram
-python bot.py
-```
+Приложение запустится по адресу: `http://localhost:5173`
 
 ---
 
-## 🔌 API Endpoints
+## ☁️ Развертывание в Облаке (Deployment)
 
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| `POST` | `/api/init-user` | Создать/обновить пользователя |
-| `GET` | `/api/stats?user_id=&date=` | Статистика за день |
-| `PATCH` | `/api/user/{user_id}` | Обновить цели пользователя |
-| `POST` | `/api/add-text` | Добавить еду по описанию (AI) |
-| `POST` | `/api/analyze-photo` | Добавить еду по фото (AI Vision) |
-| `DELETE` | `/api/food/{log_id}` | Удалить запись |
-| `GET` | `/health` | Проверка состояния сервера |
+Проект полностью готов к дeплою 24/7:
+1. **Frontend (GitHub Pages)**:
+   Фронтенд автоматически собирается в директорию `docs/` при выполнении команды `npm run build`. В настройках репозитория GitHub Pages достаточно выбрать источник: `Branch: main, Folder: /docs`.
+2. **Backend & Telegram Bot (Render.com)**:
+   В репозитории подготовлен скрипт `start.sh`, который параллельно запускает веб-сервер Uvicorn и бота `bot.py` в рамках одного бесплатного сервиса на Render.
 
 ---
 
-## 🛠️ Технологии
+## 👨‍💻 Автор
 
-| Слой | Технологии |
-|------|------------|
-| **Бот** | Python 3.11+, aiogram 3 |
-| **Бэкенд** | FastAPI, SQLite, Pydantic v2 |
-| **ИИ** | Google Gemini 2.5 Flash (текст + vision) |
-| **Фронтенд** | React 18, TypeScript, Tailwind CSS, Vite |
-| **Инфраструктура** | Telegram Mini Apps API |
-
----
-
-## 📝 Переменные окружения
-
-| Переменная | Описание | По умолчанию |
-|------------|----------|-------------|
-| `GEMINI_API_KEY` | API-ключ Google AI Studio | — |
-| `GEMINI_MODEL` | Модель Gemini | `gemini-2.5-flash-lite` |
-
----
-
-<div align="center">
-
-Made with ❤️ for Telegram
-
-</div>
+**Максим (kwzz37)** — [GitHub Profile](https://github.com/kwzz37)
