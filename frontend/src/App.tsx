@@ -129,13 +129,9 @@ function AppInner() {
                                 weight: restoredGoals.weight,
                                 height: restoredGoals.height,
                                 age: restoredGoals.age,
-                                gender: restoredGoals.gender,
-                                goal_type: restoredGoals.goalType,
-                                activity_level: restoredGoals.activityLevel,
-                                calorie_goal: restoredGoals.calorieGoal,
-                                protein_goal: restoredGoals.proteinGoal,
-                                carbs_goal: restoredGoals.carbsGoal,
-                                fat_goal: restoredGoals.fatGoal,
+                                gender: restoredGoals.gender as any,
+                                goal_type: restoredGoals.goalType as any,
+                                activity_level: restoredGoals.activityLevel as any,
                             }).catch(console.error);
 
                             return getStats(user.id, selectedDate);
