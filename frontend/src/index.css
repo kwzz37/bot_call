@@ -567,8 +567,9 @@ html.dark .glass-btn {
     0 -8px 48px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
   animation: sheetUp 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  z-index: 110;
   /* Prevent content from going under home indicator */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 html.dark .glass-sheet {
@@ -585,7 +586,7 @@ html.dark .glass-sheet {
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 40;
+  z-index: 100;
   animation: fadeIn 0.2s ease both;
 }
 

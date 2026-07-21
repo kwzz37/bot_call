@@ -44,7 +44,7 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
 
             {/* Sheet */}
             <div
-                className="glass-sheet fixed bottom-0 left-0 right-0 z-50 px-5 pt-4 pb-[100px]"
+                className="glass-sheet fixed bottom-0 left-0 right-0 z-[110] px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[85vh] overflow-y-auto"
             >
                 {/* Handle */}
                 <div className="flex justify-center mb-4">
