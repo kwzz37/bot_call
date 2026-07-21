@@ -230,7 +230,7 @@ function AppInner() {
                     if (localWater && Number(localWater) > 0) {
                         const w = Number(localWater);
                         setWaterMl(w);
-                        apiAddWater(user.id, w, selectedDate).catch(console.error);
+                        apiAddWater(user.id, w).catch(console.error);
                     } else {
                         setWaterMl(0);
                     }
