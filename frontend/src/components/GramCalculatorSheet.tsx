@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Minus, CheckCircle } from 'lucide-react';
 import { FoodSearchResult } from '../api';
 
@@ -37,14 +38,15 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
         }
     };
 
-    return (
+    return createPortal(
         <>
             {/* Backdrop */}
-            <div className="sheet-overlay" onClick={onClose} />
+            <div className="sheet-overlay" onClick={onClose} style={{ zIndex: 9998 }} />
 
             {/* Sheet */}
             <div
-                className="glass-sheet fixed bottom-0 left-0 right-0 z-[110] px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[85vh] overflow-y-auto"
+                className="glass-sheet fixed bottom-0 left-0 right-0 px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] max-h-[85vh] overflow-y-auto"
+                style={{ zIndex: 9999 }}
             >
                 {/* Handle */}
                 <div className="flex justify-center mb-4">
@@ -154,6 +156,7 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
                     Добавить {grams}г · {cal} ккал
                 </button>
             </div>
-        </>
+        </>,
+        document.body
     );
 };
