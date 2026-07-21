@@ -131,7 +131,7 @@ def init_user(body: UserInitRequest):
     """
     user = upsert_user(
         body.user_id,
-        calorie_goal=body.calorie_goal or 2000,
+        calorie_goal=body.calorie_goal,
         weight=body.weight,
         height=body.height,
         age=body.age,
@@ -488,6 +488,10 @@ ENG_TO_RUS_SOUND = {
     "twix": "твикс", "mars": "марс", "oreo": "орео", "lays": "лейс",
     "pringles": "принглс", "milka": "милка", "nutella": "нутелла",
     "miratorg": "мираторг", "vkusvill": "вкусвилл",
+    "savushkin": "савушкин", "teos": "теоск", "bonfesto": "бонфесто",
+    "lidskae": "лидское", "lidskoe": "лидское", "grod-food": "гродфуд",
+    "onega": "онега", "vitba": "витьба", "slodych": "слодыч",
+    "spartak": "спартак", "kommunarka": "коммунарка", "domochay": "домочай",
 }
 
 
@@ -521,6 +525,20 @@ def recent_foods(user_id: int):
         }
         for r in rows
     ]
+
+
+LOCAL_DB_CACHE = []
+LOCAL_DB_NAMES = []
+
+def _get_local_db():
+    global LOCAL_DB_CACHE, LOCAL_DB_NAMES
+    if not LOCAL_DB_CACHE:
+        local_db_path = os.path.join(os.path.dirname(__file__), "local_db.json")
+        if os.path.exists(local_db_path):
+            with open(local_db_path, "r", encoding="utf-8") as f:
+                LOCAL_DB_CACHE = json.load(f)
+            LOCAL_DB_NAMES = [lf["food_name"].lower().replace("ё", "е") for lf in LOCAL_DB_CACHE]
+    return LOCAL_DB_CACHE, LOCAL_DB_NAMES
 
 
 @app.get("/api/search-food")
@@ -559,23 +577,24 @@ async def search_food(q: str, user_id: int | None = None):
                 })
                 seen.add(fname_lower)
 
-    # 3. Search local DB (fuzzy)
-    local_db_path = os.path.join(os.path.dirname(__file__), "local_db.json")
-    if os.path.exists(local_db_path):
-        with open(local_db_path, "r", encoding="utf-8") as f:
-            local_foods = json.load(f)
-
+    # 3. Search local DB (fuzzy with ё/е normalization)
+    local_foods, local_names = _get_local_db()
+    if local_foods:
         scored = []
-        for lf in local_foods:
-            fname = lf["food_name"].lower()
+        for lf, fname_norm in zip(local_foods, local_names):
             best_score = 0
             for query in queries:
-                score = fuzz.token_set_ratio(query, fname)
-                if query in fname:
+                query_norm = query.replace("ё", "е")
+                
+                score_ts = fuzz.token_set_ratio(query_norm, fname_norm)
+                score_w = fuzz.WRatio(query_norm, fname_norm)
+                score = max(score_ts, score_w)
+                
+                if query_norm in fname_norm:
                     score = max(score, 92)
                 best_score = max(best_score, score)
 
-            if best_score >= 58:
+            if best_score >= 55:
                 scored.append((best_score, lf))
 
         scored.sort(key=lambda x: x[0], reverse=True)

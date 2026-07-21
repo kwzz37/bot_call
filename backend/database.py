@@ -200,7 +200,7 @@ def get_user(user_id: int) -> sqlite3.Row | None:
 def upsert_user(
     user_id: int,
     *,
-    calorie_goal: int = 2000,
+    calorie_goal: int | None = None,
     protein_goal: float | None = None,
     carbs_goal: float | None = None,
     fat_goal: float | None = None,
@@ -221,7 +221,7 @@ def upsert_user(
             INSERT INTO users (id, calorie_goal, protein_goal, carbs_goal, fat_goal,
                                weight, height, age, gender, goal_type, activity_level,
                                water_goal, setup_complete, first_name, username)
-            VALUES (:id, :calorie_goal, :protein_goal, :carbs_goal, :fat_goal,
+            VALUES (:id, COALESCE(:calorie_goal, 2000), :protein_goal, :carbs_goal, :fat_goal,
                     :weight, :height, :age, :gender, :goal_type, :activity_level,
                     :water_goal, :setup_complete, :first_name, :username)
             ON CONFLICT(id) DO UPDATE SET

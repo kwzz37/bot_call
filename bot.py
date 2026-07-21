@@ -18,11 +18,18 @@ load_dotenv("backend/.env")
 # ─── Настройки ───────────────────────────────────────────────
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = "https://distinguished-producers-leaving-brings.trycloudflare.com"   # ← HTTPS обязателен для Telegram
+WEBAPP_URL = "https://dietamaxona123.loca.lt"   # ← HTTPS обязателен для Telegram
 
 # ─── Bot & Dispatcher ────────────────────────────────────────
 
-bot = Bot(token=BOT_TOKEN)
+from aiogram.client.session.aiohttp import AiohttpSession
+import socket
+
+session = AiohttpSession()
+# Force IPv4 to bypass aiohappyeyeballs WinError 121 timeouts
+session._connector_init_kwargs = {"family": socket.AF_INET}
+
+bot = Bot(token=BOT_TOKEN, session=session)
 dp  = Dispatcher()
 
 # ─── Handlers ────────────────────────────────────────────────

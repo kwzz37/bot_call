@@ -5967,6 +5967,15 @@
     "brand": ""
   },
   {
+    "food_name": "Савушкин Продукт Творог 2%",
+    "calories": 95,
+    "protein": 16.0,
+    "carbs": 1.5,
+    "fat": 2.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
     "food_name": "Савушкин Продукт Творог 5%",
     "calories": 118,
     "protein": 16.0,
@@ -5985,26 +5994,314 @@
     "brand": ""
   },
   {
-    "food_name": "Савушкин Продукт Кефир 1%",
-    "calories": 38,
-    "protein": 2.9,
-    "carbs": 4.1,
-    "fat": 1.0,
+    "food_name": "Савушкин Продукт Творог Мягкий 0.1%",
+    "calories": 55,
+    "protein": 11.0,
+    "carbs": 2.5,
+    "fat": 0.1,
     "category": "Молочное",
     "brand": ""
   },
   {
-    "food_name": "Савушкин Продукт Сметана 15%",
-    "calories": 155,
-    "protein": 2.8,
-    "carbs": 2.9,
-    "fat": 15.0,
+    "food_name": "Савушкин Продукт Творог Мягкий 5%",
+    "calories": 95,
+    "protein": 9.5,
+    "carbs": 3.0,
+    "fat": 5.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Творог 101 Зерно+Сливки 5%",
+    "calories": 105,
+    "protein": 11.0,
+    "carbs": 4.0,
+    "fat": 5.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт 101 Зерно с черникой",
+    "calories": 125,
+    "protein": 9.0,
+    "carbs": 13.0,
+    "fat": 4.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт 101 Зерно с клубникой",
+    "calories": 125,
+    "protein": 9.0,
+    "carbs": 13.0,
+    "fat": 4.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт 101 Зерно с персиком",
+    "calories": 125,
+    "protein": 9.0,
+    "carbs": 13.0,
+    "fat": 4.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Греческий йогурт Teos 2% Натуральный",
+    "calories": 67,
+    "protein": 8.0,
+    "carbs": 4.2,
+    "fat": 2.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Греческий йогурт Teos 0% Натуральный",
+    "calories": 52,
+    "protein": 8.5,
+    "carbs": 4.2,
+    "fat": 0.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Греческий йогурт Teos Черника 2%",
+    "calories": 90,
+    "protein": 7.0,
+    "carbs": 11.0,
+    "fat": 2.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Греческий йогурт Teos Клубника 2%",
+    "calories": 90,
+    "protein": 7.0,
+    "carbs": 11.0,
+    "fat": 2.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Греческий йогурт Teos Манго-маракуйя 2%",
+    "calories": 90,
+    "protein": 7.0,
+    "carbs": 11.0,
+    "fat": 2.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Греческий йогурт Teos Злаки-чиа 2%",
+    "calories": 95,
+    "protein": 7.2,
+    "carbs": 12.0,
+    "fat": 2.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Молоко 1.5%",
+    "calories": 44,
+    "protein": 3.0,
+    "carbs": 4.7,
+    "fat": 1.5,
     "category": "Молочное",
     "brand": ""
   },
   {
     "food_name": "Савушкин Продукт Молоко 2.5%",
+    "calories": 52,
+    "protein": 2.9,
+    "carbs": 4.7,
+    "fat": 2.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Молоко 3.2%",
+    "calories": 60,
+    "protein": 2.8,
+    "carbs": 4.7,
+    "fat": 3.2,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Сметана 15%",
+    "calories": 160,
+    "protein": 2.8,
+    "carbs": 3.0,
+    "fat": 15.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Сметана 20%",
+    "calories": 205,
+    "protein": 2.6,
+    "carbs": 2.9,
+    "fat": 20.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Сметана 26%",
+    "calories": 260,
+    "protein": 2.4,
+    "carbs": 2.7,
+    "fat": 26.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Кефир 1%",
+    "calories": 38,
+    "protein": 3.0,
+    "carbs": 4.0,
+    "fat": 1.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Кефир 2.5%",
     "calories": 50,
+    "protein": 2.8,
+    "carbs": 4.0,
+    "fat": 2.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Ряженка 4%",
+    "calories": 65,
+    "protein": 2.8,
+    "carbs": 4.2,
+    "fat": 4.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Сырок глазированный ваниль 20%",
+    "calories": 390,
+    "protein": 7.5,
+    "carbs": 38.0,
+    "fat": 23.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Сырок глазированный какао 20%",
+    "calories": 395,
+    "protein": 7.5,
+    "carbs": 38.0,
+    "fat": 23.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Савушкин Продукт Сырок глазированный ТОП сгущенка",
+    "calories": 380,
+    "protein": 7.0,
+    "carbs": 40.0,
+    "fat": 21.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сыр Классический 45%",
+    "calories": 340,
+    "protein": 25.0,
+    "carbs": 0.0,
+    "fat": 26.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сыр Сливочный 50%",
+    "calories": 360,
+    "protein": 24.0,
+    "carbs": 0.0,
+    "fat": 29.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сыр Легкий 35%",
+    "calories": 285,
+    "protein": 31.0,
+    "carbs": 0.0,
+    "fat": 17.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сыр Финский 45%",
+    "calories": 335,
+    "protein": 25.5,
+    "carbs": 0.0,
+    "fat": 25.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сыр Голландский 45%",
+    "calories": 345,
+    "protein": 26.0,
+    "carbs": 0.0,
+    "fat": 26.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сыр Маасдам 45%",
+    "calories": 350,
+    "protein": 24.0,
+    "carbs": 0.0,
+    "fat": 27.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Масло сливочное 82.5%",
+    "calories": 748,
+    "protein": 0.6,
+    "carbs": 0.8,
+    "fat": 82.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Масло сливочное 72.5%",
+    "calories": 662,
+    "protein": 1.0,
+    "carbs": 1.4,
+    "fat": 72.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сметана 15%",
+    "calories": 160,
+    "protein": 2.8,
+    "carbs": 3.0,
+    "fat": 15.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брест-Литовск Сметана 20%",
+    "calories": 205,
+    "protein": 2.6,
+    "carbs": 2.8,
+    "fat": 20.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Бабушкина Крынка Молоко 2.5%",
+    "calories": 52,
     "protein": 2.8,
     "carbs": 4.7,
     "fat": 2.5,
@@ -6012,27 +6309,9 @@
     "brand": ""
   },
   {
-    "food_name": "Савушкин Продукт Йогурт питьевой",
-    "calories": 75,
-    "protein": 3.0,
-    "carbs": 9.5,
-    "fat": 2.0,
-    "category": "Молочное",
-    "brand": ""
-  },
-  {
-    "food_name": "Савушкин Продукт Ряженка 4%",
-    "calories": 63,
-    "protein": 2.7,
-    "carbs": 4.1,
-    "fat": 4.0,
-    "category": "Молочное",
-    "brand": ""
-  },
-  {
     "food_name": "Бабушкина Крынка Молоко 3.2%",
     "calories": 58,
-    "protein": 2.7,
+    "protein": 2.8,
     "carbs": 4.7,
     "fat": 3.2,
     "category": "Молочное",
@@ -6048,6 +6327,24 @@
     "brand": ""
   },
   {
+    "food_name": "Бабушкина Крынка Творог 9%",
+    "calories": 160,
+    "protein": 16.0,
+    "carbs": 1.5,
+    "fat": 9.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Бабушкина Крынка Сметана 15%",
+    "calories": 160,
+    "protein": 2.8,
+    "carbs": 3.0,
+    "fat": 15.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
     "food_name": "Бабушкина Крынка Сметана 20%",
     "calories": 200,
     "protein": 2.5,
@@ -6057,16 +6354,106 @@
     "brand": ""
   },
   {
-    "food_name": "Минская Марка Молоко 2.5%",
-    "calories": 52,
-    "protein": 2.9,
-    "carbs": 4.7,
+    "food_name": "Бабушкина Крынка Кефир 2.5%",
+    "calories": 50,
+    "protein": 2.8,
+    "carbs": 4.0,
     "fat": 2.5,
     "category": "Молочное",
     "brand": ""
   },
   {
-    "food_name": "Рогачёвская Сгущёнка",
+    "food_name": "Бабушкина Крынка Сыр Сливочный 50%",
+    "calories": 355,
+    "protein": 24.0,
+    "carbs": 0.0,
+    "fat": 28.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Бабушкина Крынка Сыр Российский 50%",
+    "calories": 350,
+    "protein": 24.5,
+    "carbs": 0.0,
+    "fat": 28.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёвская Сгущёнка цельная 8.5%",
+    "calories": 329,
+    "protein": 7.2,
+    "carbs": 56.0,
+    "fat": 8.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёвская Сгущёнка варёная Егорка",
+    "calories": 323,
+    "protein": 7.0,
+    "carbs": 54.0,
+    "fat": 8.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёвская Сгущёнка с какао 7.5%",
+    "calories": 317,
+    "protein": 7.5,
+    "carbs": 55.0,
+    "fat": 7.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёвское Молоко концентрированное 8.6%",
+    "calories": 140,
+    "protein": 7.0,
+    "carbs": 9.5,
+    "fat": 8.6,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёвская Сгущёнка с цикорием 7%",
+    "calories": 315,
+    "protein": 7.2,
+    "carbs": 56.0,
+    "fat": 7.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёвская Сгущёнка с кокосом",
+    "calories": 335,
+    "protein": 6.8,
+    "carbs": 56.5,
+    "fat": 9.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёв Тушёнка говяжья высший сорт",
+    "calories": 215,
+    "protein": 16.8,
+    "carbs": 0.0,
+    "fat": 16.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Рогачёв Тушёнка свиная высший сорт",
+    "calories": 349,
+    "protein": 13.0,
+    "carbs": 0.0,
+    "fat": 33.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Глубокская Сгущёнка цельная 8.5%",
     "calories": 328,
     "protein": 7.2,
     "carbs": 56.0,
@@ -6075,11 +6462,65 @@
     "brand": ""
   },
   {
-    "food_name": "Рогачёвская Сгущёнка варёная",
-    "calories": 323,
+    "food_name": "Глубокская Сгущёнка варёная Лакомка",
+    "calories": 320,
     "protein": 7.0,
     "carbs": 54.0,
     "fat": 8.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Глубокская Сгущёнка с какао",
+    "calories": 315,
+    "protein": 7.5,
+    "carbs": 55.0,
+    "fat": 7.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Глубокская Сгущёнка с вишней",
+    "calories": 325,
+    "protein": 6.8,
+    "carbs": 57.0,
+    "fat": 8.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Беллакт Творог детский 4.0%",
+    "calories": 92,
+    "protein": 8.0,
+    "carbs": 6.0,
+    "fat": 4.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Беллакт Творог детский с яблоком",
+    "calories": 105,
+    "protein": 7.0,
+    "carbs": 11.0,
+    "fat": 3.8,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Беллакт Сырок глазированный 23%",
+    "calories": 410,
+    "protein": 7.0,
+    "carbs": 39.0,
+    "fat": 25.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Беллакт Молоко 2.5%",
+    "calories": 52,
+    "protein": 2.9,
+    "carbs": 4.7,
+    "fat": 2.5,
     "category": "Молочное",
     "brand": ""
   },
@@ -6093,16 +6534,403 @@
     "brand": ""
   },
   {
-    "food_name": "Агрокомбинат Дзержинский Куриная грудка отварная",
-    "calories": 100,
+    "food_name": "Беллакт Каша сухая овсяная молочная",
+    "calories": 410,
+    "protein": 13.0,
+    "carbs": 67.0,
+    "fat": 10.0,
+    "category": "Крупы",
+    "brand": ""
+  },
+  {
+    "food_name": "Беллакт Каша сухая гречневая",
+    "calories": 360,
+    "protein": 12.0,
+    "carbs": 72.0,
+    "fat": 2.5,
+    "category": "Крупы",
+    "brand": ""
+  },
+  {
+    "food_name": "Беллакт Пюре детское кабачок",
+    "calories": 18,
+    "protein": 0.8,
+    "carbs": 3.5,
+    "fat": 0.1,
+    "category": "Овощи",
+    "brand": ""
+  },
+  {
+    "food_name": "Беллакт Пюре детское яблоко",
+    "calories": 48,
+    "protein": 0.4,
+    "carbs": 11.5,
+    "fat": 0.1,
+    "category": "Фрукты",
+    "brand": ""
+  },
+  {
+    "food_name": "Ясь Белоус Молоко 2.5%",
+    "calories": 52,
+    "protein": 2.8,
+    "carbs": 4.7,
+    "fat": 2.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Ясь Белоус Сметана 15%",
+    "calories": 160,
+    "protein": 2.6,
+    "carbs": 3.0,
+    "fat": 15.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Ясь Белоус Творог 5%",
+    "calories": 120,
+    "protein": 17.0,
+    "carbs": 1.5,
+    "fat": 5.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Депи Творожок детский 4%",
+    "calories": 95,
+    "protein": 7.5,
+    "carbs": 7.0,
+    "fat": 4.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Славянские Традиции Кефир 2.5%",
+    "calories": 50,
+    "protein": 2.8,
+    "carbs": 4.0,
+    "fat": 2.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Bonfesto Рикотта 45%",
+    "calories": 140,
+    "protein": 8.5,
+    "carbs": 4.0,
+    "fat": 10.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Bonfesto Маскарпоне 80%",
+    "calories": 360,
+    "protein": 4.5,
+    "carbs": 3.0,
+    "fat": 37.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Bonfesto Моцарелла шарики",
+    "calories": 240,
+    "protein": 18.0,
+    "carbs": 1.5,
+    "fat": 18.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Bonfesto Кремчиз 70%",
+    "calories": 245,
+    "protein": 6.0,
+    "carbs": 2.5,
+    "fat": 23.5,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Bonfesto Моцарелла пицца 45%",
+    "calories": 290,
     "protein": 23.0,
-    "carbs": 0.0,
-    "fat": 1.0,
+    "carbs": 1.0,
+    "fat": 22.0,
+    "category": "Молочное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестский МК Сосиски Брестские",
+    "calories": 255,
+    "protein": 11.0,
+    "carbs": 1.5,
+    "fat": 23.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестский МК Сосиски с сыром",
+    "calories": 270,
+    "protein": 12.0,
+    "carbs": 1.5,
+    "fat": 24.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестский МК Колбаса Докторская",
+    "calories": 245,
+    "protein": 12.5,
+    "carbs": 1.5,
+    "fat": 21.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестский МК Колбаса Сервелат Финский",
+    "calories": 390,
+    "protein": 15.0,
+    "carbs": 1.0,
+    "fat": 36.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестский МК Колбаса Салями Молочная",
+    "calories": 380,
+    "protein": 14.5,
+    "carbs": 1.0,
+    "fat": 35.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестский МК Ветчина Нежная",
+    "calories": 145,
+    "protein": 16.0,
+    "carbs": 1.0,
+    "fat": 9.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестский МК Полендвица сыровяленая",
+    "calories": 260,
+    "protein": 28.0,
+    "carbs": 0.5,
+    "fat": 16.0,
     "category": "Мясное",
     "brand": ""
   },
   {
-    "food_name": "Агрокомбинат Дзержинский Куриное филе",
+    "food_name": "Брестские Пельмени Татарские",
+    "calories": 245,
+    "protein": 11.0,
+    "carbs": 25.0,
+    "fat": 11.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Брестские Пельмени Мясные подушечки",
+    "calories": 250,
+    "protein": 11.5,
+    "carbs": 24.0,
+    "fat": 12.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродненский МК Колбаса Гродненская",
+    "calories": 340,
+    "protein": 16.0,
+    "carbs": 1.0,
+    "fat": 30.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродненский МК Сосиски Детские",
+    "calories": 230,
+    "protein": 12.0,
+    "carbs": 1.0,
+    "fat": 20.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродненский МК Киндюк сыровяленый",
+    "calories": 420,
+    "protein": 22.0,
+    "carbs": 0.5,
+    "fat": 37.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродненский МК Колбаса Пальцем пиханая",
+    "calories": 410,
+    "protein": 20.0,
+    "carbs": 0.5,
+    "fat": 36.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродненский МК Полендвица запеченная",
+    "calories": 240,
+    "protein": 26.0,
+    "carbs": 0.5,
+    "fat": 15.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродненский МК Ветчина Купеческая",
+    "calories": 150,
+    "protein": 15.0,
+    "carbs": 1.0,
+    "fat": 10.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Волковысский МК Сосиски Молочные",
+    "calories": 250,
+    "protein": 11.0,
+    "carbs": 1.5,
+    "fat": 22.5,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Волковысский МК Колбаса Любительская",
+    "calories": 305,
+    "protein": 12.0,
+    "carbs": 1.0,
+    "fat": 28.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Слонимский МК Колбаса Сервелат",
+    "calories": 395,
+    "protein": 15.0,
+    "carbs": 1.0,
+    "fat": 37.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Слонимский МК Грудинка запеченная",
+    "calories": 450,
+    "protein": 10.0,
+    "carbs": 0.0,
+    "fat": 46.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Минский МК Колбаса Докторская",
+    "calories": 248,
+    "protein": 12.0,
+    "carbs": 1.5,
+    "fat": 21.5,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Минский МК Сервелат Минский",
+    "calories": 385,
+    "protein": 15.2,
+    "carbs": 1.0,
+    "fat": 35.5,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Петруха Куриное филе охлажденное",
+    "calories": 110,
+    "protein": 23.0,
+    "carbs": 0.0,
+    "fat": 1.2,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Петруха Наггетсы куриные классические",
+    "calories": 230,
+    "protein": 14.0,
+    "carbs": 18.0,
+    "fat": 11.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Петруха Котлеты куриные Нежные",
+    "calories": 190,
+    "protein": 15.0,
+    "carbs": 6.0,
+    "fat": 12.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Петруха Сосиски из мяса птицы",
+    "calories": 195,
+    "protein": 13.0,
+    "carbs": 2.0,
+    "fat": 15.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Петруха Ветчина из куриной грудки",
+    "calories": 115,
+    "protein": 17.0,
+    "carbs": 1.0,
+    "fat": 5.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Галерея Вкуса Филе индейки",
+    "calories": 115,
+    "protein": 24.0,
+    "carbs": 0.0,
+    "fat": 1.5,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Галерея Вкуса Сосиски из индейки",
+    "calories": 160,
+    "protein": 14.5,
+    "carbs": 1.5,
+    "fat": 11.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Галерея Вкуса Ветчина из индейки",
+    "calories": 105,
+    "protein": 16.5,
+    "carbs": 1.0,
+    "fat": 4.0,
+    "category": "Колбасы",
+    "brand": ""
+  },
+  {
+    "food_name": "Галерея Вкуса Паштет из печени индейки",
+    "calories": 190,
+    "protein": 12.0,
+    "carbs": 3.0,
+    "fat": 14.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Агрокомбинат Дзержинский Филе цыпленка",
     "calories": 112,
     "protein": 22.5,
     "carbs": 0.0,
@@ -6111,43 +6939,88 @@
     "brand": ""
   },
   {
-    "food_name": "Столичная колбаса Докторская (Беларусь)",
-    "calories": 245,
-    "protein": 12.5,
-    "carbs": 2.0,
-    "fat": 21.0,
-    "category": "Колбасы",
+    "food_name": "Агрокомбинат Дзержинский Колбаски Шашлычные",
+    "calories": 220,
+    "protein": 16.0,
+    "carbs": 1.0,
+    "fat": 17.0,
+    "category": "Мясное",
     "brand": ""
   },
   {
-    "food_name": "Белорусская Сервелат",
-    "calories": 395,
-    "protein": 15.0,
-    "carbs": 0.0,
-    "fat": 37.0,
-    "category": "Колбасы",
+    "food_name": "Красный Пищевик Зефир Первый Бобруйский ванильный",
+    "calories": 300,
+    "protein": 0.8,
+    "carbs": 78.0,
+    "fat": 0.0,
+    "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Минская Докторская колбаса",
-    "calories": 248,
+    "food_name": "Красный Пищевик Зефир Первый Бобруйский в шоколаде",
+    "calories": 390,
+    "protein": 2.0,
+    "carbs": 67.0,
+    "fat": 12.5,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Красный Пищевик Зефир Zefir.by бело-розовый",
+    "calories": 300,
+    "protein": 0.8,
+    "carbs": 78.0,
+    "fat": 0.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Красный Пищевик Зефир с клюквенной начинкой",
+    "calories": 320,
+    "protein": 0.7,
+    "carbs": 80.0,
+    "fat": 0.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Красный Пищевик Мармелад Фантазия",
+    "calories": 310,
+    "protein": 0.1,
+    "carbs": 77.0,
+    "fat": 0.1,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Красный Пищевик Мармелад Детский дольки",
+    "calories": 315,
+    "protein": 0.1,
+    "carbs": 78.0,
+    "fat": 0.1,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Красный Пищевик Халва подсолнечная",
+    "calories": 520,
     "protein": 12.0,
-    "carbs": 2.5,
-    "fat": 21.5,
-    "category": "Колбасы",
+    "carbs": 48.0,
+    "fat": 32.0,
+    "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Брестский Мясокомбинат Сосиски",
-    "calories": 255,
-    "protein": 11.0,
-    "carbs": 2.0,
-    "fat": 23.0,
-    "category": "Колбасы",
+    "food_name": "Красный Пищевик Халва арахисовая",
+    "calories": 530,
+    "protein": 14.0,
+    "carbs": 45.0,
+    "fat": 33.0,
+    "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Коммунарка Шоколад молочный",
+    "food_name": "Коммунарка Шоколад Любимая Алёнка",
     "calories": 545,
     "protein": 7.0,
     "carbs": 57.0,
@@ -6156,88 +7029,844 @@
     "brand": ""
   },
   {
-    "food_name": "Коммунарка Шоколад горький 70%",
-    "calories": 530,
-    "protein": 8.0,
-    "carbs": 44.0,
-    "fat": 36.0,
+    "food_name": "Коммунарка Шоколад Генеральский 85%",
+    "calories": 560,
+    "protein": 11.0,
+    "carbs": 30.0,
+    "fat": 44.0,
     "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Коммунарка Шоколад белый",
+    "food_name": "Коммунарка Шоколад Горький 72%",
+    "calories": 550,
+    "protein": 9.5,
+    "carbs": 40.0,
+    "fat": 39.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Коммунарка Шоколад Горький 55%",
     "calories": 535,
-    "protein": 5.5,
-    "carbs": 60.0,
-    "fat": 31.0,
+    "protein": 6.5,
+    "carbs": 51.0,
+    "fat": 34.0,
     "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Коммунарка Птичье молоко",
-    "calories": 400,
-    "protein": 5.0,
-    "carbs": 47.0,
-    "fat": 22.0,
-    "category": "Сладости",
-    "brand": ""
-  },
-  {
-    "food_name": "Коммунарка Трюфели",
+    "food_name": "Коммунарка Шоколад Столичный с ликером",
     "calories": 470,
     "protein": 4.5,
-    "carbs": 50.0,
-    "fat": 28.0,
+    "carbs": 61.0,
+    "fat": 23.0,
     "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Спартак Шоколад молочный",
-    "calories": 540,
+    "food_name": "Коммунарка Батончик молочно-вафельный",
+    "calories": 530,
+    "protein": 6.0,
+    "carbs": 59.0,
+    "fat": 30.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Коммунарка Конфеты Грильяж в шоколаде",
+    "calories": 510,
     "protein": 6.5,
-    "carbs": 57.0,
-    "fat": 33.0,
-    "category": "Сладости",
-    "brand": ""
-  },
-  {
-    "food_name": "Спартак Печенье",
-    "calories": 450,
-    "protein": 7.0,
-    "carbs": 66.0,
-    "fat": 18.0,
-    "category": "Сладости",
-    "brand": ""
-  },
-  {
-    "food_name": "Спартак Вафли шоколадные",
-    "calories": 490,
-    "protein": 5.0,
-    "carbs": 57.0,
+    "carbs": 61.0,
     "fat": 27.0,
     "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Красный Мозырянин Карамель",
-    "calories": 380,
-    "protein": 0.0,
-    "carbs": 88.0,
-    "fat": 3.5,
+    "food_name": "Коммунарка Конфеты Сорванец",
+    "calories": 490,
+    "protein": 4.0,
+    "carbs": 67.0,
+    "fat": 23.0,
     "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Белхлеб Хлеб ржаной",
-    "calories": 210,
-    "protein": 6.0,
-    "carbs": 45.0,
-    "fat": 1.2,
-    "category": "Хлеб",
+    "food_name": "Коммунарка Конфеты Беловежская пуща",
+    "calories": 480,
+    "protein": 5.0,
+    "carbs": 66.0,
+    "fat": 22.0,
+    "category": "Сладости",
     "brand": ""
   },
   {
-    "food_name": "Нарочанский хлеб (ржано-пшеничный)",
+    "food_name": "Спартак Шоколад Горький 72%",
+    "calories": 545,
+    "protein": 9.0,
+    "carbs": 41.0,
+    "fat": 38.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Спартак Шоколад Горький 90%",
+    "calories": 570,
+    "protein": 12.0,
+    "carbs": 25.0,
+    "fat": 47.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Спартак Шоколад Impresso темный",
+    "calories": 540,
+    "protein": 8.0,
+    "carbs": 46.0,
+    "fat": 36.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Спартак Шоколад Melanie молочный",
+    "calories": 535,
+    "protein": 7.0,
+    "carbs": 56.0,
+    "fat": 32.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Спартак Батончик Мулатка",
+    "calories": 480,
+    "protein": 5.0,
+    "carbs": 65.0,
+    "fat": 22.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Спартак Печенье Спартак к чаю",
+    "calories": 450,
+    "protein": 7.5,
+    "carbs": 67.0,
+    "fat": 16.5,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Спартак Вафли Шоколадные",
+    "calories": 500,
+    "protein": 5.5,
+    "carbs": 60.0,
+    "fat": 26.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Слодыч Печенье К кофе",
+    "calories": 450,
+    "protein": 7.5,
+    "carbs": 66.0,
+    "fat": 17.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Слодыч Печенье Ореховое",
+    "calories": 465,
+    "protein": 8.0,
+    "carbs": 64.0,
+    "fat": 19.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Слодыч Печенье Шахматное",
+    "calories": 445,
+    "protein": 7.5,
+    "carbs": 67.0,
+    "fat": 16.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Слодыч Печенье земляничное",
+    "calories": 440,
+    "protein": 7.2,
+    "carbs": 68.0,
+    "fat": 15.5,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Слодыч Крекер соленый",
+    "calories": 430,
+    "protein": 8.5,
+    "carbs": 67.0,
+    "fat": 14.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Витьба Вафли Шоколадные",
+    "calories": 510,
+    "protein": 5.5,
+    "carbs": 60.0,
+    "fat": 27.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Витьба Вафли Сливочные",
+    "calories": 520,
+    "protein": 5.0,
+    "carbs": 61.0,
+    "fat": 28.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Витьба Подушечки Вити молочные",
+    "calories": 460,
+    "protein": 7.0,
+    "carbs": 67.0,
+    "fat": 18.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Витьба Подушечки Вити шоколадные",
+    "calories": 465,
+    "protein": 7.0,
+    "carbs": 66.0,
+    "fat": 19.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Витьба Вафельные трубочки с какао",
+    "calories": 490,
+    "protein": 6.0,
+    "carbs": 64.0,
+    "fat": 23.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Витьба Хлопья кукурузные",
+    "calories": 370,
+    "protein": 7.5,
+    "carbs": 81.0,
+    "fat": 1.5,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Онега Мегачипсы Сметана и сыр",
+    "calories": 510,
+    "protein": 5.5,
+    "carbs": 58.0,
+    "fat": 28.0,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Онега Мегачипсы Бекон",
+    "calories": 510,
+    "protein": 5.5,
+    "carbs": 58.0,
+    "fat": 28.0,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Онега Мегачипсы Грибы",
+    "calories": 505,
+    "protein": 5.5,
+    "carbs": 58.5,
+    "fat": 27.5,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Онега Чипсы Just Chips соль",
+    "calories": 520,
+    "protein": 6.0,
+    "carbs": 55.0,
+    "fat": 30.0,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Bulba Sticks Картофельная соломка Соль",
+    "calories": 530,
+    "protein": 5.5,
+    "carbs": 54.0,
+    "fat": 32.0,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Bulba Sticks Соломка Сметана и зелень",
+    "calories": 525,
+    "protein": 5.5,
+    "carbs": 55.0,
+    "fat": 31.0,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Bulba Sticks Соломка Паприка",
+    "calories": 525,
+    "protein": 5.5,
+    "carbs": 55.0,
+    "fat": 31.0,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Онега Арахис соленый",
+    "calories": 610,
+    "protein": 26.0,
+    "carbs": 15.0,
+    "fat": 50.0,
+    "category": "Снеки",
+    "brand": ""
+  },
+  {
+    "food_name": "Лидский Квас Тёмный",
+    "calories": 36,
+    "protein": 0.2,
+    "carbs": 8.8,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Лидский Квас Хлебный",
+    "calories": 32,
+    "protein": 0.2,
+    "carbs": 7.6,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Лидский Квас Свакольны",
+    "calories": 34,
+    "protein": 0.2,
+    "carbs": 8.2,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Лидское Пиво Премиум",
+    "calories": 42,
+    "protein": 0.5,
+    "carbs": 3.5,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Дарида Aqua Fruit Лимон-Лайм",
+    "calories": 18,
+    "protein": 0.0,
+    "carbs": 4.5,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Дарида Минеральная вода",
+    "calories": 0,
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Дарида Лимонад Классический",
+    "calories": 40,
+    "protein": 0.0,
+    "carbs": 10.0,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Бела-Кола (МЗБН)",
+    "calories": 42,
+    "protein": 0.0,
+    "carbs": 10.6,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Росинка Лимонад (МЗБН)",
+    "calories": 38,
+    "protein": 0.0,
+    "carbs": 9.5,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "ABC Сок Березовый",
+    "calories": 15,
+    "protein": 0.1,
+    "carbs": 3.6,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "ABC Сок Яблочный",
+    "calories": 44,
+    "protein": 0.5,
+    "carbs": 10.5,
+    "fat": 0.0,
+    "category": "Напитки",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродфуд Тушёнка говяжья высший сорт",
+    "calories": 220,
+    "protein": 16.5,
+    "carbs": 0.0,
+    "fat": 17.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродфуд Тушёнка свиная высший сорт",
+    "calories": 345,
+    "protein": 13.0,
+    "carbs": 0.0,
+    "fat": 32.5,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "Гродфуд Паштет печёночный",
+    "calories": 230,
+    "protein": 11.0,
+    "carbs": 3.5,
+    "fat": 19.0,
+    "category": "Мясное",
+    "brand": ""
+  },
+  {
+    "food_name": "ABC Майонез Провансаль 67%",
+    "calories": 610,
+    "protein": 0.5,
+    "carbs": 2.5,
+    "fat": 67.0,
+    "category": "Соусы",
+    "brand": ""
+  },
+  {
+    "food_name": "ABC Хрен Столовый",
+    "calories": 75,
+    "protein": 2.0,
+    "carbs": 15.0,
+    "fat": 0.5,
+    "category": "Соусы",
+    "brand": ""
+  },
+  {
+    "food_name": "ABC Горчица Русская",
+    "calories": 140,
+    "protein": 6.0,
+    "carbs": 11.0,
+    "fat": 8.0,
+    "category": "Соусы",
+    "brand": ""
+  },
+  {
+    "food_name": "Лидская Мука пшеничная высший сорт",
+    "calories": 334,
+    "protein": 10.3,
+    "carbs": 70.6,
+    "fat": 1.1,
+    "category": "Крупы",
+    "brand": ""
+  },
+  {
+    "food_name": "Драники классические",
+    "calories": 215,
+    "protein": 3.5,
+    "carbs": 25.0,
+    "fat": 11.0,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Драники со сметаной",
+    "calories": 245,
+    "protein": 3.8,
+    "carbs": 25.0,
+    "fat": 14.0,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Драники с мясом (Колдуны)",
+    "calories": 270,
+    "protein": 8.5,
+    "carbs": 24.0,
+    "fat": 15.0,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Картофельная бапка со шкварками",
+    "calories": 260,
+    "protein": 6.0,
+    "carbs": 22.0,
+    "fat": 16.0,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Клецки картофельные с мясом (Душишки)",
+    "calories": 235,
+    "protein": 7.5,
+    "carbs": 28.0,
+    "fat": 10.0,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Мачанка свиная с блинами",
+    "calories": 320,
+    "protein": 11.0,
+    "carbs": 20.0,
+    "fat": 22.0,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Холодник свекольный на кефире",
+    "calories": 65,
+    "protein": 3.2,
+    "carbs": 7.5,
+    "fat": 2.5,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Холодник на свекольном отваре",
+    "calories": 45,
+    "protein": 1.8,
+    "carbs": 7.0,
+    "fat": 1.0,
+    "category": "Белорусская кухня",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Хлеб заварной",
+    "calories": 215,
+    "protein": 6.5,
+    "carbs": 45.0,
+    "fat": 1.2,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Хлеб Могилёвский",
+    "calories": 220,
+    "protein": 6.8,
+    "carbs": 46.0,
+    "fat": 1.3,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Хлеб Днепровский",
+    "calories": 210,
+    "protein": 6.2,
+    "carbs": 44.0,
+    "fat": 1.1,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Хлеб Праздничный с семечками",
+    "calories": 260,
+    "protein": 8.5,
+    "carbs": 43.0,
+    "fat": 6.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Хлеб Бородинский",
+    "calories": 208,
+    "protein": 6.8,
+    "carbs": 43.0,
+    "fat": 1.3,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Хлеб Купеческий с изюмом",
+    "calories": 245,
+    "protein": 6.5,
+    "carbs": 51.0,
+    "fat": 2.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Батон Нарезной",
+    "calories": 255,
+    "protein": 7.8,
+    "carbs": 50.0,
+    "fat": 2.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Батон Могилёвский",
+    "calories": 260,
+    "protein": 8.0,
+    "carbs": 51.0,
+    "fat": 2.8,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Батон Сливочный",
+    "calories": 270,
+    "protein": 8.2,
+    "carbs": 49.0,
+    "fat": 4.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Калач сдобный",
+    "calories": 285,
+    "protein": 7.5,
+    "carbs": 54.0,
+    "fat": 4.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Рогалик с маком",
+    "calories": 290,
+    "protein": 8.0,
+    "carbs": 52.0,
+    "fat": 5.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Плетёнка с маком",
+    "calories": 310,
+    "protein": 8.5,
+    "carbs": 54.0,
+    "fat": 6.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Булочка с корицей",
+    "calories": 320,
+    "protein": 6.5,
+    "carbs": 55.0,
+    "fat": 8.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Булочка с джемом",
+    "calories": 280,
+    "protein": 5.5,
+    "carbs": 56.0,
+    "fat": 3.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Булочка с изюмом",
+    "calories": 295,
+    "protein": 6.8,
+    "carbs": 56.0,
+    "fat": 4.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Булочка Маковка",
+    "calories": 315,
+    "protein": 8.0,
+    "carbs": 54.0,
+    "fat": 7.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Ватрушка с творогом",
+    "calories": 250,
+    "protein": 9.5,
+    "carbs": 42.0,
+    "fat": 5.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Сочень с творогом",
+    "calories": 280,
+    "protein": 8.5,
+    "carbs": 41.0,
+    "fat": 9.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Коржик молочный",
+    "calories": 360,
+    "protein": 7.0,
+    "carbs": 60.0,
+    "fat": 10.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Кекс Столичный с изюмом",
+    "calories": 390,
+    "protein": 6.0,
+    "carbs": 55.0,
+    "fat": 16.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Кекс Мраморный",
+    "calories": 410,
+    "protein": 6.5,
+    "carbs": 53.0,
+    "fat": 19.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Слойка с повидлом",
+    "calories": 340,
+    "protein": 5.2,
+    "carbs": 46.0,
+    "fat": 15.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Слойка со сгущёнкой",
+    "calories": 370,
+    "protein": 6.5,
+    "carbs": 48.0,
+    "fat": 17.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Слойка с ветчиной и сыром",
+    "calories": 310,
+    "protein": 9.0,
+    "carbs": 32.0,
+    "fat": 16.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Пряники глазированные",
+    "calories": 350,
+    "protein": 4.8,
+    "carbs": 73.0,
+    "fat": 4.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Пряники шоколадные",
+    "calories": 360,
+    "protein": 5.2,
+    "carbs": 73.0,
+    "fat": 5.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Пряники мятные",
+    "calories": 345,
+    "protein": 4.5,
+    "carbs": 74.0,
+    "fat": 3.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Сушки Малышка ванильные",
+    "calories": 385,
+    "protein": 10.0,
+    "carbs": 77.0,
+    "fat": 3.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Сушки с маком",
+    "calories": 395,
+    "protein": 10.5,
+    "carbs": 76.0,
+    "fat": 4.5,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Сухари с изюмом",
+    "calories": 390,
+    "protein": 8.5,
+    "carbs": 74.0,
+    "fat": 6.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Сухари с маком",
+    "calories": 400,
+    "protein": 9.0,
+    "carbs": 73.0,
+    "fat": 7.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Торт Сказка",
+    "calories": 380,
+    "protein": 4.5,
+    "carbs": 50.0,
+    "fat": 18.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Домочай Торт Могилёвский",
+    "calories": 410,
+    "protein": 5.0,
+    "carbs": 48.0,
+    "fat": 22.0,
+    "category": "Сладости",
+    "brand": ""
+  },
+  {
+    "food_name": "Нарочанский хлеб (Минскхлебпром)",
     "calories": 220,
     "protein": 6.5,
     "carbs": 46.0,
@@ -6246,21 +7875,273 @@
     "brand": ""
   },
   {
-    "food_name": "Хлеб Дарницкий (Беларусь)",
+    "food_name": "Радзивилловский хлеб",
     "calories": 215,
     "protein": 6.3,
-    "carbs": 44.5,
+    "carbs": 45.0,
     "fat": 1.4,
     "category": "Хлеб",
     "brand": ""
   },
   {
-    "food_name": "Батон Нарезной белорусский",
+    "food_name": "Борковский хлеб",
+    "calories": 210,
+    "protein": 6.2,
+    "carbs": 44.5,
+    "fat": 1.2,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Минскхлебпром Хлеб Майский",
+    "calories": 218,
+    "protein": 6.4,
+    "carbs": 45.5,
+    "fat": 1.3,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Минскхлебпром Хлеб Володарский",
+    "calories": 205,
+    "protein": 6.0,
+    "carbs": 43.5,
+    "fat": 1.1,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Минскхлебпром Батон Столичный",
+    "calories": 260,
+    "protein": 8.0,
+    "carbs": 51.0,
+    "fat": 2.8,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Батон Нарезной Минский",
     "calories": 255,
     "protein": 8.0,
     "carbs": 50.5,
     "fat": 2.8,
     "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Минскхлебпром Сайка Минская",
+    "calories": 250,
+    "protein": 7.5,
+    "carbs": 50.0,
+    "fat": 2.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Минскхлебпром Пышка Минская",
+    "calories": 270,
+    "protein": 7.8,
+    "carbs": 50.0,
+    "fat": 4.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Берестейский Пекарь Хлеб Берестейский",
+    "calories": 215,
+    "protein": 6.4,
+    "carbs": 45.0,
+    "fat": 1.3,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Берестейский Пекарь Хлеб Брестский заварной",
+    "calories": 222,
+    "protein": 6.6,
+    "carbs": 46.0,
+    "fat": 1.4,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Берестейский Пекарь Хлеб Полесье",
+    "calories": 210,
+    "protein": 6.2,
+    "carbs": 44.0,
+    "fat": 1.2,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Берестейский Пекарь Батон Брестский",
+    "calories": 255,
+    "protein": 7.8,
+    "carbs": 50.0,
+    "fat": 2.5,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Витебскхлебпром Хлеб Витебский",
+    "calories": 212,
+    "protein": 6.3,
+    "carbs": 44.5,
+    "fat": 1.3,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Витебскхлебпром Хлеб Двинский",
+    "calories": 218,
+    "protein": 6.5,
+    "carbs": 45.0,
+    "fat": 1.4,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Гроднохлебпром Хлеб Гродненский",
+    "calories": 214,
+    "protein": 6.4,
+    "carbs": 44.8,
+    "fat": 1.3,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Гроднохлебпром Хлеб Неманский",
+    "calories": 216,
+    "protein": 6.5,
+    "carbs": 45.0,
+    "fat": 1.4,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Гомельхлебпром Хлеб Гомельский",
+    "calories": 215,
+    "protein": 6.4,
+    "carbs": 45.0,
+    "fat": 1.3,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Гомельхлебпром Хлеб Сожский",
+    "calories": 210,
+    "protein": 6.2,
+    "carbs": 44.0,
+    "fat": 1.2,
+    "category": "Хлеб",
+    "brand": ""
+  },
+  {
+    "food_name": "Пирожок с картошкой",
+    "calories": 210,
+    "protein": 4.5,
+    "carbs": 32.0,
+    "fat": 7.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Пирожок с капустой",
+    "calories": 180,
+    "protein": 4.0,
+    "carbs": 28.0,
+    "fat": 6.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Пирожок с мясом",
+    "calories": 245,
+    "protein": 8.5,
+    "carbs": 28.0,
+    "fat": 11.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Пирожок с вишней",
+    "calories": 220,
+    "protein": 3.8,
+    "carbs": 40.0,
+    "fat": 5.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Пирожок с повидлом",
+    "calories": 230,
+    "protein": 4.0,
+    "carbs": 42.0,
+    "fat": 5.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Чебурек с мясом",
+    "calories": 320,
+    "protein": 11.0,
+    "carbs": 26.0,
+    "fat": 19.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Беляш с мясом",
+    "calories": 340,
+    "protein": 12.0,
+    "carbs": 25.0,
+    "fat": 21.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Пончик с вареньем",
+    "calories": 290,
+    "protein": 4.5,
+    "carbs": 41.0,
+    "fat": 12.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Пончик с шоколадом",
+    "calories": 330,
+    "protein": 5.0,
+    "carbs": 42.0,
+    "fat": 16.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Лаваш тонкий армянский",
+    "calories": 235,
+    "protein": 7.9,
+    "carbs": 48.0,
+    "fat": 1.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Лаваш пышный грузинский",
+    "calories": 260,
+    "protein": 8.2,
+    "carbs": 52.0,
+    "fat": 2.0,
+    "category": "Выпечка",
+    "brand": ""
+  },
+  {
+    "food_name": "Багет французский",
+    "calories": 265,
+    "protein": 8.5,
+    "carbs": 53.0,
+    "fat": 2.2,
+    "category": "Выпечка",
     "brand": ""
   },
   {
