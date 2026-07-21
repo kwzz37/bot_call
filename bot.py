@@ -18,7 +18,7 @@ load_dotenv("backend/.env")
 # ─── Настройки ───────────────────────────────────────────────
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = "https://dietamaxona123.loca.lt"   # ← HTTPS обязателен для Telegram
+WEBAPP_URL = "https://kwzz37.github.io/bot_call/"   # ← HTTPS обязателен для Telegram
 
 # ─── Bot & Dispatcher ────────────────────────────────────────
 

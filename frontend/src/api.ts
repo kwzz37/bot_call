@@ -3,7 +3,7 @@
  * api.ts — Typed client for the Calorie Tracker backend
  */
 
-const BASE_URL = import.meta.env?.VITE_API_URL ?? '';
+const BASE_URL = import.meta.env?.VITE_API_URL || 'https://bot-call-wftl.onrender.com';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
