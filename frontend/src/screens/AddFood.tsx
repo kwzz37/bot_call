@@ -223,10 +223,15 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
         }
     };
 
-    const handleAddSearchResult = async (food: FoodSearchResult, grams: number = 100) => {
+    const handleAddSearchResult = async (food: FoodSearchResult, grams: number = 100, mealType?: string) => {
         if (!user?.id) return;
         setSelectedFood(null);
         tapImpact();
+
+        const h = new Date().getHours();
+        const defaultMeal = (h >= 5 && h < 12) ? 'breakfast' : (h >= 12 && h < 17) ? 'lunch' : (h >= 17 && h < 22) ? 'dinner' : 'snack';
+        const targetMeal = (mealType && mealType !== 'any') ? mealType : (selectedMealType !== 'any' ? selectedMealType : defaultMeal);
+
         // Scale nutrition by grams
         const f = grams / 100;
         const scaledFood = {
@@ -238,7 +243,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
             food_name: `${food.food_name} (${grams}г)`,
         };
         try {
-            const res = await addManual(user.id, scaledFood, selectedMealType, selectedDate);
+            const res = await addManual(user.id, scaledFood, targetMeal, selectedDate);
             const item: FoodItem = {
                 id: res.log_id.toString(),
                 name: res.food,
@@ -248,7 +253,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
                 fat: res.fat || undefined,
                 emoji: res.emoji || '🍽️',
                 time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                meal_type: selectedMealType,
+                meal_type: targetMeal,
             };
             onAdd(item);
             successFeedback();
@@ -811,6 +816,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onAdd, onBack, selectedDate, s
                     food={selectedFood}
                     onAdd={handleAddSearchResult}
                     onClose={() => setSelectedFood(null)}
+                    initialMealType={selectedMealType}
                 />
             )}
         </div>

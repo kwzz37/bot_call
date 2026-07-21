@@ -355,15 +355,14 @@ export const Profile: React.FC<ProfileProps> = ({ goals, onGoalsChange, onResetO
                         onClick={() => { tapImpact(); setTheme(theme === 'dark' ? 'light' : 'dark'); }}
                         style={{
                             position: 'relative',
-                            width: 52,
+                            width: 50,
                             height: 28,
                             borderRadius: 14,
                             border: 'none',
                             background: theme === 'dark' ? 'var(--accent)' : 'var(--track)',
                             cursor: 'pointer',
                             transition: 'background 0.3s ease',
-                            minHeight: 44,
-                            minWidth: 52,
+                            flexShrink: 0,
                         }}
                     >
                         <div style={{

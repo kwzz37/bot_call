@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 
 export interface FoodItem {
     id: string;
@@ -97,10 +98,25 @@ export const FoodCard: React.FC<FoodCardProps> = ({ item, onDelete }) => {
                     )}
                 </div>
 
-                {/* Calories */}
-                <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-base" style={{ color: 'var(--accent)' }}>{item.calories}</p>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>ккал</p>
+                {/* Calories & Delete Button */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="text-right">
+                        <p className="font-bold text-base" style={{ color: 'var(--accent)' }}>{item.calories}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>ккал</p>
+                    </div>
+                    {onDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete(item.id);
+                            }}
+                            className="w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 ml-1"
+                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+                            title="Удалить"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

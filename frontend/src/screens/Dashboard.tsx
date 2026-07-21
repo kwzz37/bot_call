@@ -17,7 +17,7 @@ function getGreeting(): string {
     return 'Добрый вечер 🌙';
 }
 
-const MEALS_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEALS_ORDER = ['breakfast', 'lunch', 'dinner', 'snack', 'any'];
 const MEALS_LABELS: Record<string, string> = {
     'breakfast': 'Завтрак 🍳',
     'lunch': 'Обед 🍽️',

@@ -5,14 +5,26 @@ import { FoodSearchResult } from '../api';
 
 interface GramCalculatorSheetProps {
     food: FoodSearchResult;
-    onAdd: (food: FoodSearchResult, grams: number) => void;
+    onAdd: (food: FoodSearchResult, grams: number, mealType?: string) => void;
     onClose: () => void;
+    initialMealType?: string;
 }
 
 const QUICK_AMOUNTS = [50, 100, 150, 200, 300];
 
-export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, onAdd, onClose }) => {
+function getDefaultMealType(): string {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) return 'breakfast';
+    if (h >= 12 && h < 17) return 'lunch';
+    if (h >= 17 && h < 22) return 'dinner';
+    return 'snack';
+}
+
+export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, onAdd, onClose, initialMealType }) => {
     const [gramsStr, setGramsStr] = useState('100');
+    const [selectedMeal, setSelectedMeal] = useState<string>(
+        (initialMealType && initialMealType !== 'any') ? initialMealType : getDefaultMealType()
+    );
 
     const grams = parseInt(gramsStr) || 0;
     const factor = grams / 100;
@@ -45,7 +57,7 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
 
             {/* Sheet Container */}
             <div
-                className="glass-sheet fixed bottom-0 left-0 right-0 px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] max-h-[85vh] flex flex-col justify-between"
+                className="glass-sheet fixed bottom-0 left-0 right-0 px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] max-h-[90vh] flex flex-col justify-between"
                 style={{ zIndex: 9999 }}
             >
                 {/* Scrollable top area */}
@@ -127,6 +139,33 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
                         ))}
                     </div>
 
+                    {/* Meal selection */}
+                    <div className="mb-4">
+                        <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-muted)' }}>Прием пищи</p>
+                        <div className="grid grid-cols-4 gap-1.5">
+                            {[
+                                ['breakfast', '🍳 Завтрак'],
+                                ['lunch', '🍽️ Обед'],
+                                ['dinner', '🌙 Ужин'],
+                                ['snack', '🍎 Перекус'],
+                            ].map(([m, label]) => (
+                                <button
+                                    key={m}
+                                    type="button"
+                                    onClick={() => setSelectedMeal(m)}
+                                    className="py-2 px-1 rounded-xl text-[11px] font-bold transition-all text-center"
+                                    style={{
+                                        background: selectedMeal === m ? 'var(--accent)' : 'var(--bg-card2)',
+                                        color: selectedMeal === m ? '#fff' : 'var(--text-secondary)',
+                                        boxShadow: selectedMeal === m ? '0 2px 8px rgba(99,102,241,0.35)' : 'none',
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Nutrition preview */}
                     <div className="glass-card p-3.5 mb-4 grid grid-cols-4 gap-2 text-center">
                         <div>
@@ -151,7 +190,7 @@ export const GramCalculatorSheet: React.FC<GramCalculatorSheetProps> = ({ food, 
                 {/* Fixed CTA Add button at the bottom of the card */}
                 <div className="pt-2 flex-shrink-0">
                     <button
-                        onClick={() => onAdd(food, grams)}
+                        onClick={() => onAdd(food, grams, selectedMeal)}
                         className="btn-primary w-full flex items-center justify-center gap-2 py-3.5 text-base font-bold shadow-lg"
                     >
                         <CheckCircle size={20} />
