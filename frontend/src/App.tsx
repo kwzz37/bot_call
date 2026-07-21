@@ -9,7 +9,7 @@ import { Toast, ToastMessage } from './components/Toast';
 import { FoodItem } from './components/FoodCard';
 import { useTelegram } from './hooks/useTelegram';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { initUser, getStats, completeOnboarding, addManual, deleteFood, addWater as apiAddWater } from './api';
+import { initUser, getStats, completeOnboarding, addManual, deleteFood, logWater as apiAddWater } from './api';
 
 type Screen = 'dashboard' | 'progress' | 'add' | 'profile';
 
