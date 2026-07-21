@@ -10,6 +10,10 @@ export default defineConfig({
     },
   },
   base: '/bot_call/',
+  build: {
+    outDir: '../docs',
+    emptyOutDir: true,
+  },
   server: {
     allowedHosts: true,
   },
