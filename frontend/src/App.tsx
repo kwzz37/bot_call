@@ -335,6 +335,7 @@ function AppInner() {
                         selectedMealType={selectedMealType}
                         setSelectedMealType={setSelectedMealType}
                     />
+                )}
                 {activeScreen === 'profile' && (
                     <Profile
                         goals={goals}
