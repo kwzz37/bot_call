@@ -81,14 +81,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const { user, tapImpact } = useTelegram();
     const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
-    const handleAddWater = async (ml: number) => {
-        if (!user?.id || !setWaterMl) return;
+    const handleAddWater = (ml: number) => {
+        if (!setWaterMl) return;
         tapImpact();
-        try {
-            await logWater(user.id, ml);
-            setWaterMl(prev => prev + ml);
-        } catch (e) {
-            console.error('Failed to log water', e);
+        setWaterMl(prev => {
+            const next = Math.max(0, prev + ml);
+            if (user?.id) {
+                const savedWaterKey = `saved_day_water_${user.id}_${selectedDate}`;
+                localStorage.setItem(savedWaterKey, String(next));
+            }
+            return next;
+        });
+
+        if (user?.id) {
+            logWater(user.id, ml).catch(e => console.error('Failed to log water to backend', e));
         }
     };
 

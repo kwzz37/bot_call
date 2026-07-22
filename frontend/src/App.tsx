@@ -89,8 +89,55 @@ function AppInner() {
 
     // ── Init user & load stats ─────────────────────────────────
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            setAppReady(true);
+            return;
+        }
 
+        // 1. Immediately restore cached data so app opens in 0ms
+        const savedProfileStr = localStorage.getItem('saved_user_profile');
+        const onboardingDone = localStorage.getItem('onboarding_done') === '1' || !!savedProfileStr;
+
+        if (savedProfileStr) {
+            try {
+                const saved = JSON.parse(savedProfileStr);
+                setGoals({
+                    calorieGoal: saved.calorieGoal || saved.calorie_goal || 2000,
+                    proteinGoal: saved.proteinGoal || saved.protein_goal || 150,
+                    carbsGoal: saved.carbsGoal || saved.carbs_goal || 200,
+                    fatGoal: saved.fatGoal || saved.fat_goal || 65,
+                    waterGoal: saved.waterGoal || saved.water_goal || 2000,
+                    weight: saved.weight || 70,
+                    height: saved.height || 175,
+                    age: saved.age || 25,
+                    gender: saved.gender || 'male',
+                    goalType: saved.goalType || saved.goal_type || 'maintain',
+                    activityLevel: saved.activityLevel || saved.activity_level || 'moderate',
+                });
+            } catch (e) {
+                console.error('Failed to parse saved user profile:', e);
+            }
+        }
+
+        const storageKey = `saved_day_foods_${user.id}_${selectedDate}`;
+        const savedWaterKey = `saved_day_water_${user.id}_${selectedDate}`;
+
+        const localFoodsStr = localStorage.getItem(storageKey);
+        if (localFoodsStr) {
+            try { setFoods(JSON.parse(localFoodsStr)); } catch (e) {}
+        }
+
+        const localWater = localStorage.getItem(savedWaterKey);
+        if (localWater) {
+            setWaterMl(Number(localWater) || 0);
+        }
+
+        if (onboardingDone) {
+            setShowOnboarding(false);
+            setAppReady(true); // Open UI instantly!
+        }
+
+        // 2. Fetch fresh data from backend asynchronously in background
         initUser({
             user_id: user.id,
             first_name: user.first_name,
@@ -101,67 +148,31 @@ function AppInner() {
                                   (profile.weight && profile.weight > 0) &&
                                   (profile.height && profile.height > 0);
 
-                if (!setupDone) {
-                    const savedProfileStr = localStorage.getItem('saved_user_profile');
-                    if (savedProfileStr) {
-                        try {
-                            const saved = JSON.parse(savedProfileStr);
-                            const restoredGoals = {
-                                calorieGoal: saved.calorieGoal || saved.calorie_goal || 2000,
-                                proteinGoal: saved.proteinGoal || saved.protein_goal || 150,
-                                carbsGoal: saved.carbsGoal || saved.carbs_goal || 200,
-                                fatGoal: saved.fatGoal || saved.fat_goal || 65,
-                                waterGoal: saved.waterGoal || saved.water_goal || 2000,
-                                weight: saved.weight || 70,
-                                height: saved.height || 175,
-                                age: saved.age || 25,
-                                gender: saved.gender || 'male',
-                                goalType: saved.goalType || saved.goal_type || 'maintain',
-                                activityLevel: saved.activityLevel || saved.activity_level || 'moderate',
-                            };
-
-                            setGoals(restoredGoals);
-                            setShowOnboarding(false);
-
-                            // Restore user profile to server DB in background
-                            completeOnboarding({
-                                user_id: user.id,
-                                weight: restoredGoals.weight,
-                                height: restoredGoals.height,
-                                age: restoredGoals.age,
-                                gender: restoredGoals.gender as any,
-                                goal_type: restoredGoals.goalType as any,
-                                activity_level: restoredGoals.activityLevel as any,
-                            }).catch(console.error);
-
-                            return getStats(user.id, selectedDate);
-                        } catch (e) {
-                            console.error('Failed to parse saved user profile:', e);
-                        }
-                    }
-
+                if (!setupDone && !savedProfileStr) {
                     setShowOnboarding(true);
                     setAppReady(true);
                     return;
                 }
 
-                // Load goals from profile & cache locally
-                const activeGoals = {
-                    calorieGoal: profile.calorie_goal ?? 2000,
-                    proteinGoal: profile.protein_goal ?? 150,
-                    carbsGoal: profile.carbs_goal ?? 200,
-                    fatGoal: profile.fat_goal ?? 65,
-                    waterGoal: profile.water_goal ?? 2000,
-                    weight: profile.weight ?? 70,
-                    height: profile.height ?? 175,
-                    age: profile.age ?? 25,
-                    gender: profile.gender ?? 'male',
-                    goalType: profile.goal_type ?? 'maintain',
-                    activityLevel: profile.activity_level ?? 'moderate',
-                };
-                setGoals(activeGoals);
-                localStorage.setItem('saved_user_profile', JSON.stringify(activeGoals));
-                localStorage.setItem('onboarding_done', '1');
+                if (setupDone) {
+                    const activeGoals = {
+                        calorieGoal: profile.calorie_goal ?? 2000,
+                        proteinGoal: profile.protein_goal ?? 150,
+                        carbsGoal: profile.carbs_goal ?? 200,
+                        fatGoal: profile.fat_goal ?? 65,
+                        waterGoal: profile.water_goal ?? 2000,
+                        weight: profile.weight ?? 70,
+                        height: profile.height ?? 175,
+                        age: profile.age ?? 25,
+                        gender: profile.gender ?? 'male',
+                        goalType: profile.goal_type ?? 'maintain',
+                        activityLevel: profile.activity_level ?? 'moderate',
+                    };
+                    setGoals(activeGoals);
+                    localStorage.setItem('saved_user_profile', JSON.stringify(activeGoals));
+                    localStorage.setItem('onboarding_done', '1');
+                    setShowOnboarding(false);
+                }
 
                 return getStats(user.id, selectedDate);
             })
@@ -175,9 +186,6 @@ function AppInner() {
                     fatGoal: stats.fat_goal ?? g.fatGoal,
                     waterGoal: stats.water_goal ?? g.waterGoal,
                 }));
-
-                const storageKey = `saved_day_foods_${user.id}_${selectedDate}`;
-                const savedWaterKey = `saved_day_water_${user.id}_${selectedDate}`;
 
                 const serverFoods: FoodItem[] = stats.entries.map((e) => ({
                     id: String(e.id),
@@ -211,49 +219,21 @@ function AppInner() {
                                         fat: f.fat || 0,
                                     }, f.meal_type || 'any', selectedDate).catch(console.error);
                                 });
-                            } else {
-                                setFoods([]);
                             }
-                        } catch (e) {
-                            setFoods([]);
-                        }
-                    } else {
-                        setFoods([]);
+                        } catch (e) {}
                     }
                 }
 
                 if (stats.water_ml > 0) {
                     setWaterMl(stats.water_ml);
                     localStorage.setItem(savedWaterKey, String(stats.water_ml));
-                } else {
-                    const localWater = localStorage.getItem(savedWaterKey);
-                    if (localWater && Number(localWater) > 0) {
-                        const w = Number(localWater);
-                        setWaterMl(w);
-                        apiAddWater(user.id, w).catch(console.error);
-                    } else {
-                        setWaterMl(0);
-                    }
                 }
 
                 setStreak(stats.streak ?? 0);
                 setAppReady(true);
             })
             .catch((err) => {
-                console.warn('Backend not reachable, running in offline mode:', err);
-                const storageKey = `saved_day_foods_${user.id}_${selectedDate}`;
-                const savedWaterKey = `saved_day_water_${user.id}_${selectedDate}`;
-                const localStr = localStorage.getItem(storageKey);
-                if (localStr) {
-                    try { setFoods(JSON.parse(localStr)); } catch (e) {}
-                }
-                const localWater = localStorage.getItem(savedWaterKey);
-                if (localWater) { setWaterMl(Number(localWater) || 0); }
-
-                const localDone = localStorage.getItem('onboarding_done') === '1';
-                if (!localDone) {
-                    setShowOnboarding(true);
-                }
+                console.warn('Backend note (offline or slow):', err);
                 setAppReady(true);
             });
     }, [user?.id, selectedDate]);

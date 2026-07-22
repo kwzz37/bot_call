@@ -142,15 +142,24 @@ export interface RecentFoodResult {
 // ─── Helpers ──────────────────────────────────────────────────────────
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, {
-        headers: { 'Content-Type': 'application/json', ...init?.headers },
-        ...init,
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(err.detail ?? 'API error');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+        const res = await fetch(`${BASE_URL}${path}`, {
+            headers: { 'Content-Type': 'application/json', ...init?.headers },
+            signal: controller.signal,
+            ...init,
+        });
+        clearTimeout(timeoutId);
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail ?? 'API error');
+        }
+        return res.json() as Promise<T>;
+    } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
     }
-    return res.json() as Promise<T>;
 }
 
 // ─── API calls ────────────────────────────────────────────────────────
