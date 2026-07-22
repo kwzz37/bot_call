@@ -116,7 +116,7 @@ def _require_user(user_id: int):
 
 # ─────────────────────────── Endpoints ───────────────────────────
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD", "POST"])
 def health():
     return {"status": "ok", "model": GEMINI_MODEL}
 
