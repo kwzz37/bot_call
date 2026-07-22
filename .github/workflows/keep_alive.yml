@@ -1,0 +1,18 @@
+name: Keep Render Backend Alive
+
+on:
+  schedule:
+    # Запуск каждые 10 минут (чтобы предотвратить 15-минутный таймаут сна Render)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Позволяет запустить пинг вручную из GitHub UI
+
+jobs:
+  ping:
+    name: Ping Render Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Ping Request to Render Backend
+        run: |
+          echo "Sending ping to https://bot-call-wftl.onrender.com/health..."
+          RESPONSE=$(curl -s -w "\nHTTP Status: %{http_code}\n" https://bot-call-wftl.onrender.com/health)
+          echo "$RESPONSE"
